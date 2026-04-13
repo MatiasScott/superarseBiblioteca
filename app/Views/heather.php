@@ -1,6 +1,6 @@
     <heather>
         <nav class="bg-gradient-to-r from-superarse-morado-oscuro to-superarse-morado-medio text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
         <!-- IZQUIERDA: Logo + Título -->
         <div class="flex items-center gap-3 min-w-0">
@@ -53,7 +53,7 @@
     </div>
 
     <!-- MENÚ MÓVIL -->
-    <div class="md:hidden bg-superarse-morado-medio px-4 py-2 flex justify-center gap-6 text-sm font-semibold">
+    <div class="md:hidden bg-superarse-morado-medio px-4 py-2 flex flex-wrap justify-center gap-4 text-sm font-semibold">
         <a href="<?= BASE_URL ?>/libros/catalogo" class="hover:underline">Libros</a>
         <a href="<?= BASE_URL ?>/tesis" class="hover:underline">Tesis</a>
         <a href="<?= BASE_URL ?>/publicaciones" class="hover:underline">Publicaciones</a>

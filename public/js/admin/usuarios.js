@@ -13,56 +13,9 @@ function soloNumeros10(input) {
 =========================== */
 let usuariosData = [];
 let rolesData = [];
-
-/* ===========================
-   TABS
-=========================== */
-function showTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab =>
-        tab.classList.add('hidden')
-    );
-    document.getElementById(tabName).classList.remove('hidden');
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove(
-            'border-superarse-morado-oscuro',
-            'text-superarse-morado-oscuro'
-        );
-        btn.classList.add('border-transparent', 'text-gray-600');
-    });
-
-    event.target.classList.remove('border-transparent', 'text-gray-600');
-    event.target.classList.add(
-        'border-superarse-morado-oscuro',
-        'text-superarse-morado-oscuro'
-    );
-
-    if (tabName === 'usuarios') {
-        cargarRoles();
-        cargarUsuarios();
-
-        const buscador = document.getElementById("buscarUsuario");
-        if (buscador) {
-            buscador.addEventListener("input", function () {
-                const filtro = this.value.toLowerCase();
-                const filas = document.querySelectorAll("#usuariosTableBody tr");
-
-                filas.forEach(fila => {
-                    const nombre = fila.cells[0]?.textContent.toLowerCase() || "";
-                    const cedula = fila.cells[1]?.textContent.toLowerCase() || "";
-
-                    fila.style.display =
-                        nombre.includes(filtro) || cedula.includes(filtro)
-                            ? ""
-                            : "none";
-                });
-            });
-        }
-
-    } else if (tabName === 'estadistica') {
-        cargarEstadisticas();
-    }
-}
+let buscadorUsuariosInicializado = false;
+let usuariosCargando = false;
+let rolesCargando = false;
 
 /* ===========================
    MODAL
@@ -84,6 +37,11 @@ function cerrarModalUsuario() {
    ROLES
 =========================== */
 function cargarRoles() {
+    if (rolesData.length || rolesCargando) {
+        return;
+    }
+
+    rolesCargando = true;
     fetch(BASE_URL + '/admin/usuarios/roles')
         .then(r => r.json())
         .then(data => {
@@ -98,32 +56,47 @@ function cargarRoles() {
                 option.text = rol.nombre;
                 rolSelect.appendChild(option);
             });
+        })
+        .finally(() => {
+            rolesCargando = false;
         });
 }
 
 /* ===========================
    USUARIOS
 =========================== */
-function cargarUsuarios() {
+function cargarUsuarios(forceReload = false) {
+    if (!forceReload && usuariosData.length) {
+        renderizarUsuarios();
+        return;
+    }
+
+    if (usuariosCargando) {
+        return;
+    }
+
+    usuariosCargando = true;
+
     fetch(BASE_URL + '/admin/usuarios/get')
         .then(r => r.json())
         .then(data => {
             usuariosData = data.data || data;
             renderizarUsuarios();
+        })
+        .finally(() => {
+            usuariosCargando = false;
         });
 }
 
 function renderizarUsuarios() {
     const tbody = document.getElementById('usuariosTableBody');
-    tbody.innerHTML = "";
-
-    usuariosData.forEach(usuario => {
+    const rows = usuariosData.map(usuario => {
         const estadoClass =
             usuario.estado === 'ACTIVO'
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700';
 
-        tbody.innerHTML += `
+        return `
             <tr class="border-b hover:bg-gray-50">
                 <td class="px-4 py-4">${usuario.nombre} ${usuario.apellido}</td>
                 <td class="px-4 py-4">${usuario.cedula}</td>
@@ -148,7 +121,15 @@ function renderizarUsuarios() {
                 </td>
             </tr>
         `;
-    });
+    }).join('');
+
+    tbody.innerHTML = rows || `
+        <tr>
+            <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+                No hay usuarios para mostrar
+            </td>
+        </tr>
+    `;
 }
 
 /* ===========================
@@ -266,7 +247,7 @@ function guardarUsuario(event) {
                     showConfirmButton: false
                 });
                 cerrarModalUsuario();
-                cargarUsuarios();
+                cargarUsuarios(true);
             } else {
                 Swal.fire('Error', res.message || 'No se pudo guardar', 'error');
             }
@@ -295,7 +276,7 @@ function eliminarUsuario(id) {
                 .then(res => {
                     if (res.success) {
                         Swal.fire('Eliminado', 'Usuario eliminado', 'success');
-                        cargarUsuarios();
+                        cargarUsuarios(true);
                     } else {
                         Swal.fire('Error', 'No se pudo eliminar', 'error');
                     }
@@ -303,3 +284,26 @@ function eliminarUsuario(id) {
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!buscadorUsuariosInicializado) {
+        const buscador = document.getElementById('buscarUsuario');
+        if (buscador) {
+            buscador.addEventListener('input', function () {
+                const filtro = this.value.toLowerCase();
+                document.querySelectorAll('#usuariosTableBody tr').forEach(fila => {
+                    const nombre = fila.cells[0]?.textContent.toLowerCase() || '';
+                    const cedula = fila.cells[1]?.textContent.toLowerCase() || '';
+                    fila.style.display =
+                        nombre.includes(filtro) || cedula.includes(filtro)
+                            ? ''
+                            : 'none';
+                });
+            });
+            buscadorUsuariosInicializado = true;
+        }
+    }
+
+    cargarRoles();
+    cargarUsuarios();
+});

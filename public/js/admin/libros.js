@@ -1,8 +1,6 @@
 /* ============================================================================
                                 CARGAR LIBROS
 ============================================================================= */
-document.addEventListener("DOMContentLoaded", loadLibros);
-
 function loadLibros() {
   fetch(`${BASE_URL}/libros/indexJson`)
     .then(r => r.json())
@@ -34,8 +32,7 @@ function loadLibros() {
 /* =============================================================================
                          3️⃣ Renderizar libros
 ==============================================================================*/
-      data.libros.forEach(l => {
-        tbody.innerHTML += `
+      tbody.innerHTML = data.libros.map(l => `
           <tr class="border-b">
             <td class="px-3 py-2">${l.codigo}</td>
             <td class="px-3 py-2">
@@ -62,10 +59,13 @@ function loadLibros() {
               <button onclick="deleteLibro(${l.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
             </td>
           </tr>
-        `;
-      });
+        `).join('');
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadLibros();
+});
 
 document.getElementById("buscarLibro").addEventListener("input", function() {
   const filtro = this.value.toLowerCase();

@@ -161,16 +161,59 @@ public function listar()
             exit;
         }
 
-        $solicitudes = $this->model->getByUsuario($_SESSION['usuario_id']);
+        $usuarioId = $_SESSION['usuario_id'];
+        $estado = trim($_GET['estado'] ?? '');
+        $desde = trim($_GET['desde'] ?? '');
+        $hasta = trim($_GET['hasta'] ?? '');
+
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = (int) ($_GET['per_page'] ?? 10);
+        if ($perPage < 1) {
+            $perPage = 10;
+        }
+        if ($perPage > 50) {
+            $perPage = 50;
+        }
+
+        $paginated = isset($_GET['page']) || isset($_GET['per_page']) || $estado !== '' || $desde !== '' || $hasta !== '';
+
+        if ($paginated) {
+            $total = $this->model->countByUsuario($usuarioId, $estado, $desde, $hasta);
+            $totalPages = max(1, (int) ceil($total / $perPage));
+            if ($page > $totalPages) {
+                $page = $totalPages;
+            }
+
+            $offset = ($page - 1) * $perPage;
+            $solicitudes = $this->model->getByUsuario($usuarioId, $estado, $desde, $hasta, $perPage, $offset);
+        } else {
+            $solicitudes = $this->model->getByUsuario($usuarioId);
+            $total = count($solicitudes);
+            $totalPages = 1;
+        }
 
         foreach ($solicitudes as &$s) {
             $s['fecha_solicitud'] = $s['fecha_solicitud']
                 ? date('Y-m-d H:i', strtotime($s['fecha_solicitud']))
-                : '-';
+                : null;
 
             $s['fecha_respuesta'] = $s['fecha_respuesta']
                 ? date('Y-m-d H:i', strtotime($s['fecha_respuesta']))
-                : '-';
+                : null;
+        }
+
+        if ($paginated) {
+            echo json_encode([
+                'success' => true,
+                'data' => $solicitudes,
+                'pagination' => [
+                    'page' => $page,
+                    'per_page' => $perPage,
+                    'total' => $total,
+                    'total_pages' => $totalPages,
+                ],
+            ]);
+            exit;
         }
 
         echo json_encode($solicitudes);

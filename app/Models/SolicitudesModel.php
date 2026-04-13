@@ -329,16 +329,61 @@ public function getAll($mes = null)
     /* ============================================================
        ESTUDIANTE — MIS SOLICITUDES
     ============================================================ */
-    public function getByUsuario($usuarioId)
+    private function buildStudentFilters(string $estado, string $desde, string $hasta, array &$params): string
+    {
+        $where = '';
+
+        if ($estado !== '') {
+            $where .= ' AND sp.estado = ?';
+            $params[] = $estado;
+        }
+
+        if ($desde !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $desde)) {
+            $where .= ' AND sp.fecha_solicitud >= ?';
+            $params[] = $desde . ' 00:00:00';
+        }
+
+        if ($hasta !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $hasta)) {
+            $where .= ' AND sp.fecha_solicitud < ?';
+            $params[] = date('Y-m-d H:i:s', strtotime($hasta . ' +1 day'));
+        }
+
+        return $where;
+    }
+
+    public function getByUsuario($usuarioId, $estado = '', $desde = '', $hasta = '', $limit = null, $offset = null)
     {
         $sql = "SELECT sp.*, i.titulo AS libro_titulo, i.autor, i.portada, i.stock
                 FROM solicitudes_prestamo sp
                 INNER JOIN items_biblioteca i ON i.id = sp.item_id
-                WHERE sp.usuario_id = ?
-                ORDER BY sp.fecha_solicitud DESC";
+                WHERE sp.usuario_id = ?";
+
+        $params = [$usuarioId];
+        $sql .= $this->buildStudentFilters((string) $estado, (string) $desde, (string) $hasta, $params);
+        $sql .= " ORDER BY sp.fecha_solicitud DESC";
+
+        if ($limit !== null && $offset !== null) {
+            $sql .= " LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        }
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$usuarioId]);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countByUsuario($usuarioId, $estado = '', $desde = '', $hasta = '')
+    {
+        $sql = "SELECT COUNT(*)
+                FROM solicitudes_prestamo sp
+                WHERE sp.usuario_id = ?";
+
+        $params = [$usuarioId];
+        $sql .= $this->buildStudentFilters((string) $estado, (string) $desde, (string) $hasta, $params);
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
     }
 
     /* ============================================================

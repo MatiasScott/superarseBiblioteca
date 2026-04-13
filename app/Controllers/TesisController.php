@@ -216,6 +216,12 @@ class TesisController {
         require_once __DIR__ . '/../Views/Estudiantes/tesis_catalogo.php';
     }
 
+    public function catalogoStudentLayout() {
+        AuthHelper::requireStudentPage(defined('BASE_URL') ? BASE_URL : '');
+        $tesis = $this->model->getAll();
+        require_once __DIR__ . '/../Views/student/tesis.php';
+    }
+
     /* ============================================================
        SUMAR VISITA (TIEMPO REAL + HISTORIAL)
     ============================================================ */

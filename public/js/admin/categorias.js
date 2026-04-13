@@ -232,4 +232,6 @@ async function eliminarCategoria(id) {
 /* ===========================
    INIT
 =========================== */
-document.addEventListener('DOMContentLoaded', cargarCategorias);
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCategorias();
+});

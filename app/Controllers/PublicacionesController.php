@@ -275,6 +275,13 @@ class PublicacionesController
         require_once __DIR__ . '/../Views/Estudiantes/publicaciones_catalogo.php';
     }
 
+    public function catalogoStudentLayout()
+    {
+        AuthHelper::requireStudentPage(defined('BASE_URL') ? BASE_URL : '');
+        $publicaciones = $this->model->getAll();
+        require_once __DIR__ . '/../Views/student/publicaciones.php';
+    }
+
     /**
      * Sumar visitas
      */

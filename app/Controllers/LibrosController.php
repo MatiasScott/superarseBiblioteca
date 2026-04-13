@@ -163,6 +163,12 @@ class LibrosController {
     require_once __DIR__ . '/../Views/Estudiantes/libros_catalogo.php';
 }
 
+    public function catalogoStudentLayout() {
+        AuthHelper::requireStudentPage(defined('BASE_URL') ? BASE_URL : '');
+        $libros = $this->model->getAll();
+        require_once __DIR__ . '/../Views/student/libros.php';
+    }
+
     // SUMAR VISITA
     public function sumarVisita($id) {
 

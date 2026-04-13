@@ -27,21 +27,21 @@
 <body class="bg-gradient-to-r from-superarse-morado-oscuro via-superarse-morado-medio to-superarse-rosa min-h-screen flex flex-col">
 
     <!-- HEADER -->
-    <header class="bg-transparent text-white w-full py-6 shadow-lg relative">
-       <div class="relative max-w-7xl mx-auto px-4 py-8 flex flex-col items-center text-center">
+     <header class="bg-transparent text-white w-full py-6 shadow-lg relative">
+         <div class="relative max-w-7xl mx-auto px-4 py-8 sm:py-10 flex flex-col items-center text-center">
 
     <!-- BOTÓN LOGIN (arriba derecha) -->
-    <div class="absolute top-4 right-1 sm:top-6 sm:right-1">
-        <a href="login"
+    <div class="w-full flex justify-center sm:justify-end sm:absolute sm:top-6 sm:right-4 mb-5 sm:mb-0">
+        <a href="<?= BASE_URL ?>/login"
            class="px-4 sm:px-5 py-2 bg-white/20 backdrop-blur-lg border border-white/40 rounded-xl text-white font-semibold text-sm sm:text-base hover:scale-105 transition shadow-lg whitespace-nowrap">
             🔐 Iniciar Sesión
         </a>
     </div>
 
     <!-- LOGO -->
-    <img src="<?= BASE_URL ?>/assets/img/LOGO SUPERARSE PNG-02.png"
+        <img src="<?= BASE_URL ?>/assets/img/LOGO SUPERARSE PNG-02.png"
          alt="Logo Superarse"
-         class="h-14 sm:h-16 md:h-20 w-auto mb-3 sm:mb-4">
+            class="h-14 sm:h-16 md:h-20 w-auto mb-3 sm:mb-4 mt-0 sm:mt-0">
 
     <!-- TÍTULO -->
     <h1 class="font-bold tracking-wide text-2xl sm:text-3xl md:text-4xl">

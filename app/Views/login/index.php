@@ -48,7 +48,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             <img src="<?= BASE_URL ?>/assets/img/LOGO SUPERARSE PNG-02.png"
                  onerror="this.onerror=null; this.src='/assets/logos/LOGO SUPERARSE PNG-02.png';"
                  alt="Logo de Superarse"
-                 class="logo h-20 w-auto mx-auto mb-4"
+                 class="logo h-14 sm:h-16 md:h-20 w-auto mx-auto mb-4"
                  style="cursor: pointer;">
         </a>
 

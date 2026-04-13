@@ -24,14 +24,12 @@ function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
                 return;
             }
 
-            data.forEach(s => {
-
+            tbody.innerHTML = data.map(s => {
                 const estado = s.estado || "-";
-
                 const estadoClass = obtenerClaseEstado(estado);
                 const botones = generarBotones(estado, s.id);
 
-                tbody.innerHTML += `
+                return `
                     <tr>
                         <td class="px-4 py-3">${s.usuario_nombre || "-"}</td>
                         <td class="px-4 py-3">${s.usuario_apellido || "-"}</td>
@@ -41,13 +39,13 @@ function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
                         <td class="px-4 py-3">${s.libro_titulo || "-"}</td>
                         <td class="px-4 py-3">${s.stock ?? 0} / ${s.numero_ejemplares ?? 0}</td>
                         <td class="px-4 py-3">${formatearFecha(s.fecha_solicitud)}</td>
-                        <td class="px-4 py-3">${formatearFecha(s.fecha_respuesta)}</td>
+                        <td class="px-4 py-3">${formatearFechaRespuesta(s.fecha_respuesta)}</td>
                         <td class="px-4 py-3">
                             <span class="${estadoClass}">${estado}</span>
                         </td>
                         <td class="px-4 py-3">${botones}</td>
                     </tr>`;
-            });
+            }).join('');
         })
         .catch(err => {
             document.querySelector("#tablaSolicitudes tbody").innerHTML = `
@@ -64,7 +62,17 @@ function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
    UTILIDADES
 ============================= */
 function formatearFecha(fecha) {
-    return fecha ? new Date(fecha).toLocaleString() : "-";
+    if (!fecha) return '—';
+    const d = new Date(fecha);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleString('es-EC');
+}
+
+function formatearFechaRespuesta(fecha) {
+    if (!fecha) return '<span class="text-gray-400 italic text-xs">Sin respuesta</span>';
+    const d = new Date(fecha);
+    return isNaN(d.getTime())
+        ? '<span class="text-gray-400 italic text-xs">Sin respuesta</span>'
+        : d.toLocaleString('es-EC');
 }
 
 function obtenerClaseEstado(estado) {
@@ -111,10 +119,9 @@ function aplicarFiltro() {
 }
 
 function limpiarFiltro() {
-    const mesActual = new Date().toISOString().slice(0, 7);
-    document.getElementById("filtroMes").value = mesActual;
+    document.getElementById("filtroMes").value = "";
     document.getElementById("filtroEstado").value = "";
-    cargarSolicitudes(mesActual, "");
+    cargarSolicitudes("", "");
 }
 
 /* =============================
@@ -169,6 +176,6 @@ function enviarAccion(ruta, data) {
 /* =============================
    INIT
 ============================= */
-document.addEventListener("DOMContentLoaded", () => {
-    limpiarFiltro();
+document.addEventListener('DOMContentLoaded', () => {
+    cargarSolicitudes(); // todas las solicitudes, sin filtro de mes
 });

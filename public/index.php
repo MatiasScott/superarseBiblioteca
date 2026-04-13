@@ -104,6 +104,70 @@ switch (true) {
         break;
 
 /* ==========================================
+   MÓDULOS ESTUDIANTE
+========================================== */
+
+    case ($relativeUri === '/student/dashboard'):
+        (new DashboardController())->studentDashboard();
+        break;
+
+    case ($relativeUri === '/student/prestamos'):
+        (new DashboardController())->studentPrestamos();
+        break;
+
+    case ($relativeUri === '/student/perfil'):
+        (new DashboardController())->studentPerfil();
+        break;
+
+    case ($relativeUri === '/student/libros'):
+        (new LibrosController())->catalogoStudentLayout();
+        break;
+
+    case ($relativeUri === '/student/tesis'):
+        (new TesisController())->catalogoStudentLayout();
+        break;
+
+    case ($relativeUri === '/student/publicaciones'):
+        (new PublicacionesController())->catalogoStudentLayout();
+        break;
+
+/* ==========================================
+   MÓDULOS ADMIN
+========================================== */
+
+    case ($relativeUri === '/admin/prestamos'):
+        (new DashboardController())->modulePrestamos();
+        break;
+
+    case ($relativeUri === '/admin/libros'):
+        (new DashboardController())->moduleLibros();
+        break;
+
+    case ($relativeUri === '/admin/publicaciones'):
+        (new DashboardController())->modulePublicaciones();
+        break;
+
+    case ($relativeUri === '/admin/tesis'):
+        (new DashboardController())->moduleTesis();
+        break;
+
+    case ($relativeUri === '/admin/usuarios'):
+        (new DashboardController())->moduleUsuarios();
+        break;
+
+    case ($relativeUri === '/admin/categorias'):
+        (new DashboardController())->moduleCategorias();
+        break;
+
+    case ($relativeUri === '/admin/estadisticas'):
+        (new DashboardController())->moduleEstadisticas();
+        break;
+
+    case ($relativeUri === '/admin/mas-vistos'):
+        (new DashboardController())->moduleMasVistos();
+        break;
+
+/* ==========================================
    LIBROS CRUD
 ========================================== */
 

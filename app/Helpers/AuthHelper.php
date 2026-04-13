@@ -48,4 +48,14 @@ class AuthHelper
             exit;
         }
     }
+
+    public static function requireStudentPage(string $basePath = ''): void
+    {
+        self::startSession();
+
+        if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['rol_id']) || (int) $_SESSION['rol_id'] !== 2) {
+            header('Location: ' . rtrim($basePath, '/') . '/login');
+            exit;
+        }
+    }
 }

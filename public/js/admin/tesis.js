@@ -18,9 +18,6 @@ function lanzarConfetti() {
   }
 }
 
-/* ========= CARGAR TESIS Y CATEGORÍAS ========= */
-document.addEventListener("DOMContentLoaded", loadTesis);
-
 function loadTesis() {
   fetch(`${BASE_URL}/tesis/indexJson`)
     .then(r => r.json())
@@ -41,8 +38,7 @@ function loadTesis() {
         return;
       }
 
-      data.tesis.forEach(t => {
-        tbody.innerHTML += `
+      tbody.innerHTML = data.tesis.map(t => `
           <tr class="border-b">
             <td class="px-3 py-2">${escapeHtml(t.codigo)}</td>
             <td class="px-3 py-2">${escapeHtml(t.titulo)}</td>
@@ -74,8 +70,7 @@ function loadTesis() {
               <button onclick="deleteTesis(${t.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
             </td>
           </tr>
-        `;
-      });
+        `).join('');
     })
     .catch(err => {
       console.error("Error cargando tesis:", err);
@@ -83,6 +78,10 @@ function loadTesis() {
         `<tr><td colspan="11" class="text-center text-red-600 py-6">Error al cargar datos</td></tr>`;
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadTesis();
+});
 
 document.getElementById("buscarTesis").addEventListener("input", function () {
   const filtro = this.value.toLowerCase();

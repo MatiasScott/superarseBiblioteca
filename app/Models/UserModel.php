@@ -304,7 +304,9 @@ class UserModel
 
     public function getAll()
     {
-        $query = "SELECT u.*, r.nombre AS rol_nombre
+        $query = "SELECT u.id, u.rol_id, u.nombre, u.apellido, u.cedula, u.email,
+                         u.telefono, u.direccion, u.carrera, u.curso, u.estado,
+                         r.nombre AS rol_nombre
                   FROM " . $this->table_name . " u
                   LEFT JOIN roles r ON u.rol_id = r.id
                   WHERE u.deleted_at IS NULL

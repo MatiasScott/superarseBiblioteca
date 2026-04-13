@@ -151,8 +151,5 @@ function descargarExcelEstadisticas() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const tab = document.getElementById('estadistica');
-    if (tab && !tab.classList.contains('hidden')) {
-        cargarEstadisticas();
-    }
+    cargarEstadisticas();
 });

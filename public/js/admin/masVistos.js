@@ -134,7 +134,6 @@ function descargarExcel(tipo) {
         + `?fechaInicio=${inicio}&fechaFin=${fin}`;
 }
 
-/* ================= CARGA INICIAL ================= */
 document.addEventListener('DOMContentLoaded', () => {
     showSubTab('libros');
 });

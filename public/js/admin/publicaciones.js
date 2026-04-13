@@ -1,8 +1,6 @@
 //const BASE_URL = "";
 let categoriasGlobal = [];
 
-document.addEventListener("DOMContentLoaded", loadPublicaciones);
-
 function loadPublicaciones() {
   fetch(`${BASE_URL}/publicaciones/indexJson`)
     .then(r => r.json())
@@ -27,11 +25,11 @@ function loadPublicaciones() {
         select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
       });
 
-      data.publicaciones.forEach(p => {
+      tbody.innerHTML = data.publicaciones.map(p => {
         const cat = categoriasGlobal.find(c => c.id == p.categoria_id);
         const catNombre = cat ? cat.nombre : "N/A";
 
-        tbody.innerHTML += `
+        return `
           <tr class="border-b">
             <td class="px-3 py-2">${p.codigo}</td>
             <td class="px-3 py-2">
@@ -58,9 +56,13 @@ function loadPublicaciones() {
               <button onclick="deletePub(${p.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
             </td>
           </tr>`;
-      });
+      }).join('');
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadPublicaciones();
+});
 
 document.getElementById("buscarPublicacion").addEventListener("input", function () {
   const filtro = this.value.toLowerCase();

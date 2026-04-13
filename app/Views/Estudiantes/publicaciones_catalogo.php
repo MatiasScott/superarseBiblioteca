@@ -109,12 +109,12 @@
 </div>
 <div id="modalPublicacion"
      class="fixed inset-0 bg-black/60 hidden
-            flex items-center justify-center z-50 px-4">
+          flex items-start sm:items-center justify-center z-50 px-3 sm:px-4 py-4 overflow-y-auto">
 
     <div class="bg-white rounded-2xl shadow-xl
                 w-full max-w-lg md:max-w-3xl
                 p-4 sm:p-6 relative
-                max-h-[90vh] overflow-y-auto">
+                max-h-[90vh] overflow-y-auto mt-4 sm:mt-0">
 
         <button onclick="cerrarModalPublicacion()"
                 class="absolute top-3 right-3

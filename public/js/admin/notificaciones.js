@@ -74,21 +74,19 @@ function cargarPanelSolicitudes() {
                 return;
             }
 
-            data.forEach(s => {
-                lista.innerHTML += `
-                    <li class="px-4 py-3 hover:bg-gray-50 text-sm cursor-pointer border-b"
-                        onclick="irASolicitudes()">
-                        <div class="font-semibold text-gray-800">
-                            👤 ${s.usuario_nombre} ${s.usuario_apellido}
-                        </div>
-                        <div class="text-xs text-gray-600 mt-1">
-                            📘 ${s.libro_titulo}
-                        </div>
-                        <div class="text-xs text-gray-500 mt-1">
-                            🕒 ${s.fecha_solicitud ?? "Hace poco"}
-                        </div>
-                    </li>`;
-            });
+            lista.innerHTML = data.map(s => `
+                <li class="px-4 py-3 hover:bg-gray-50 text-sm cursor-pointer border-b"
+                    onclick="irASolicitudes()">
+                    <div class="font-semibold text-gray-800">
+                        👤 ${s.usuario_nombre} ${s.usuario_apellido}
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                        📘 ${s.libro_titulo}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        🕒 ${s.fecha_solicitud ?? "Hace poco"}
+                    </div>
+                </li>`).join('');
         })
         .catch(() => {});
 }
@@ -149,12 +147,12 @@ if (btnCampana && panel) {
    REDIRECCIÓN
 ============================= */
 function irASolicitudes() {
-    if (typeof showTab === "function") {
-        showTab('prestamos');
-        setTimeout(() => {
-            document.querySelector('#prestamos')?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
+    if (window.location.pathname.includes('/admin/prestamos')) {
+        panel?.classList.add("hidden");
+        return;
     }
+
+    window.location.href = `${BASE_URL}/admin/prestamos`;
     if (panel) panel.classList.add("hidden");
 }
 
@@ -183,6 +181,6 @@ function resetInactivityTimer() {
 ============================= */
 document.addEventListener("DOMContentLoaded", () => {
     resetInactivityTimer();
-    cargarPanelSolicitudes();
-    intervaloActualizacion = setInterval(actualizarNotificacionesEnTiempoReal, 5000);
+    actualizarNotificacionesEnTiempoReal();
+    intervaloActualizacion = setInterval(actualizarNotificacionesEnTiempoReal, 15000);
 });

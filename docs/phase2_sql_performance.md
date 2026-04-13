@@ -14,6 +14,15 @@ Hallazgos de EXPLAIN sobre la base actual:
 - visitas por rango usaba temporary y filesort; faltaba indice compuesto en visitas_items.
 - conteos mensuales de prestamos estaban haciendo full scan al no tener indice por fecha.
 
+Resultado de la ejecucion en la base local:
+
+- Los indices de la fase 2 ya estaban presentes al momento de ejecutar la migracion.
+- SHOW INDEX confirmo la presencia de los compuestos en items_biblioteca, solicitudes_prestamo, visitas_items y auditoria.
+- EXPLAIN mejoro de forma clara en solicitudes admin usando idx_sp_estado_fecha_solicitud.
+- EXPLAIN mejoro de forma clara en conteos mensuales usando idx_sp_fecha_prestamo_estado con acceso range.
+- EXPLAIN ya usa idx_visitas_item_fecha para visitas_items; el costo restante en rankings viene del GROUP BY y ORDER BY por agregacion.
+- El listado de catalogos de items sigue siendo resuelto por el optimizador con el PRIMARY para el ORDER BY id DESC; con el volumen actual observado no es un problema critico.
+
 Cambios aplicados en codigo:
 
 - app/Models/SolicitudesModel.php ahora usa rangos de fecha sargables en vez de DATE_FORMAT para filtros por mes.
@@ -36,6 +45,7 @@ Orden recomendado:
 2. Ejecutar sql/performance_phase2_indexes.sql en MySQL.
 3. Correr EXPLAIN de nuevo sobre consultas criticas.
 4. Medir tiempos de listados admin, dashboard y reportes.
+5. Si el volumen de items_biblioteca crece bastante, reevaluar el plan del catalogo y considerar FORCE INDEX solo si EXPLAIN y tiempos reales lo justifican.
 
 Riesgos y notas:
 
