@@ -5,7 +5,15 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-define('BASE_URL', '');
+$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$scriptDir = str_replace('\\', '/', dirname($scriptName));
+$baseUrl = rtrim($scriptDir, '/');
+
+if ($baseUrl === '/' || $baseUrl === '.') {
+    $baseUrl = '';
+}
+
+define('BASE_URL', $baseUrl);
 
 /* ==========================================
    CARGA DE CONTROLADORES
@@ -30,7 +38,13 @@ if (session_status() == PHP_SESSION_NONE) {
    VARIABLES DE RUTA
 ========================================== */
 $requestUri = strtok($_SERVER['REQUEST_URI'], '?');
-$relativeUri = rtrim($requestUri, '/');
+$relativeUri = str_replace('\\', '/', $requestUri);
+
+if (BASE_URL !== '' && strpos($relativeUri, BASE_URL) === 0) {
+    $relativeUri = substr($relativeUri, strlen(BASE_URL));
+}
+
+$relativeUri = rtrim($relativeUri, '/');
 
 if ($relativeUri === '') {
     $relativeUri = '/';

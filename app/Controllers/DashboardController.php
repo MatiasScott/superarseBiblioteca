@@ -5,11 +5,12 @@ require_once '../app/Models/UserModel.php';
 
 class DashboardController
 {
-    private $basePath = "/SuperarseBiblioteca/public";
+    private $basePath;
     private $userModel;
 
     public function __construct()
     {
+        $this->basePath = defined('BASE_URL') ? BASE_URL : '';
         $this->userModel = new UserModel();
         if (session_status() == PHP_SESSION_NONE) {
             session_start();

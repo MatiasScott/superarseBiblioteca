@@ -5,8 +5,8 @@ class Database
 {
     private static $host = "localhost";
     private static $db_name = "superar1_biblioteca_sistema_superarse";
-    private static $username = "superar1_Tics";
-    private static $password = "/Msvs5297*";
+    private static $username = "root";
+    private static $password = "Superarse.2025";
     private static $conn = null;
 
     public static function getConnection()

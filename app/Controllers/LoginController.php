@@ -5,10 +5,12 @@ require_once '../app/Models/UserModel.php';
 
 class LoginController
 {
+    private $basePath;
     private $userModel;
 
     public function __construct()
     {
+        $this->basePath = defined('BASE_URL') ? BASE_URL : '';
         $this->userModel = new UserModel();
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
@@ -18,7 +20,7 @@ class LoginController
     public function index()
     {
         if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
-            header("Location: /dashboard");
+            header("Location: " . $this->basePath . "/dashboard");
             exit();
         }
         include '../app/Views/login/index.php';
@@ -27,12 +29,12 @@ class LoginController
     public function check()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: /login?error=metodo_invalido");
+            header("Location: " . $this->basePath . "/login?error=metodo_invalido");
             exit();
         }
 
         if (empty($_POST['cedula']) || empty($_POST['contrasena'])) {
-            header("Location: /login?error=campos_vacios");
+            header("Location: " . $this->basePath . "/login?error=campos_vacios");
             exit();
         }
 
@@ -42,7 +44,7 @@ class LoginController
         $user = $this->userModel->verifyCredentials($cedula, $contrasena);
 
         if (is_array($user) && ($user['inactivo'] ?? false) === true) {
-            header("Location: /login?error=usuario_inactivo");
+            header("Location: " . $this->basePath . "/login?error=usuario_inactivo");
             exit();
         }
 
@@ -62,18 +64,18 @@ class LoginController
             $_SESSION['curso'] = $user['curso'];
             $_SESSION['login_time'] = time();
 
-            header("Location: /dashboard");
+            header("Location: " . $this->basePath . "/dashboard");
             exit();
         }
 
-        header("Location: /login?error=credenciales_invalidas");
+        header("Location: " . $this->basePath . "/login?error=credenciales_invalidas");
         exit();
     }
 
     public function logout()
     {
         session_destroy();
-        header("Location: /login?success=logout");
+        header("Location: " . $this->basePath . "/login?success=logout");
         exit();
     }
 
