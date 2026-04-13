@@ -14,7 +14,7 @@ class PublicacionModel
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $this->usuario_id = $_SESSION['user_id'] ?? null;
+        $this->usuario_id = $_SESSION['usuario_id'] ?? null;
     }
 
     /* ===============================
@@ -274,6 +274,8 @@ class PublicacionModel
 public function getMasVistosPorRango($tipoId, $fechaInicio, $fechaFin, $limit = 10)
     {
         try {
+            $limit = max(1, (int) $limit);
+
             $sql = "
                 SELECT 
                     i.id,

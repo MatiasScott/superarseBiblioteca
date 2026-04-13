@@ -308,7 +308,10 @@ $contadorAtrasados = $solicitudesModel->contarAtrasados();
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
+<script>
+const BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
+const DEFAULT_COVER = `${BASE_URL}/assets/img/default-cover.png`;
+</script>
 
 <script src="<?= BASE_URL ?>/js/admin/prestamos.js" defer></script>
 
@@ -340,7 +343,7 @@ $contadorAtrasados = $solicitudesModel->contarAtrasados();
             ➕ Nuevo Libro
         </button>
          <button
-    onclick="window.location.href = '/reporte/catalogo-libros'"
+    onclick="window.location.href = '<?= BASE_URL ?>/reporte/catalogo-libros'"
     class="flex items-center gap-2
            bg-green-600 text-white
            px-5 py-2.5 rounded-xl text-sm font-semibold
@@ -584,7 +587,6 @@ $contadorAtrasados = $solicitudesModel->contarAtrasados();
   </div>
 </div>
 
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/js/admin/publicaciones.js"></script>
 
 <!----------------------------------------------------------------------------->
@@ -704,10 +706,6 @@ $contadorAtrasados = $solicitudesModel->contarAtrasados();
   </div>
 </div>
 
-<script>
-  const BASE_URL = "<?= BASE_URL ?>";
-  const DEFAULT_COVER = "<?= BASE_URL ?>/assets/img/default-cover.png";
-</script>
 <script src="<?= BASE_URL ?>/js/admin/tesis.js"></script>
 
 <!----------------------------------------------------------------------------->
@@ -859,7 +857,6 @@ function togglePassword() {
     </div>
 </div>
 
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/js/admin/usuarios.js" defer></script>
 
 <!----------------------------------------------------------------------------->
@@ -950,7 +947,6 @@ function togglePassword() {
     </div>
 </div>
 
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/js/admin/categorias.js" defer></script>
 
 
@@ -1091,12 +1087,10 @@ function togglePassword() {
 <!------------------------SCRIP DE MAS VISTOS --------------------------------->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/js/admin/masVistos.js" defer></script>
 
 <!--------------------------SCRIP DE NOTIFICACIONES --------------------------->
 
-<script> const BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";</script>
 <script src="<?= BASE_URL ?>/js/admin/notificaciones.js?v=<?= time() ?>"></script>
 
 </div>

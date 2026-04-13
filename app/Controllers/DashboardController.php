@@ -2,6 +2,7 @@
 // app/Controllers/DashboardController.php
 
 require_once '../app/Models/UserModel.php';
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
 
 class DashboardController
 {
@@ -12,9 +13,7 @@ class DashboardController
     {
         $this->basePath = defined('BASE_URL') ? BASE_URL : '';
         $this->userModel = new UserModel();
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
 
         // Verificar que el usuario esté autenticado
         if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
@@ -45,24 +44,12 @@ class DashboardController
             exit();
         }
 
-        // --- LÓGICA DE REDIRECCIÓN CORREGIDA ---
         $rolId = $user['rol_id'] ?? 0;
-        
-        // --- DIAGNÓSTICO TEMPORAL ---
-        // Creamos una variable de diagnóstico disponible para las vistas.
-        $debugInfo = "<!-- DIAGNÓSTICO ROL: ID de usuario: {$userId}, Rol cargado: {$rolId}, Nombre de rol (BD): " . ($user['rol_nombre'] ?? 'N/A') . " -->";
-        error_log("DIAGNOSIS: User ID: {$userId}, Role ID loaded: {$rolId}, Role Name: " . ($user['rol_nombre'] ?? 'N/A'));
-        // --- FIN DIAGNÓSTICO TEMPORAL ---
-
 
         // Determinar qué dashboard mostrar según el rol (1=Admin, 2=Estudiante)
         if ($rolId == 1) {
-            // Rol 1 = Administrador
-            echo $debugInfo; // Mostrar diagnóstico en la página
             include '../app/Views/dashboard/admin.php';
         } else if ($rolId == 2) {
-            // Rol 2 = Estudiante
-            echo $debugInfo; // Mostrar diagnóstico en la página
             include '../app/Views/dashboard/student.php';
         } else {
             // Manejar roles no mapeados o rol 0 por seguridad

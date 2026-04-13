@@ -4,6 +4,8 @@ require_once __DIR__ . "/../Models/PublicacionModel.php";
 require_once __DIR__ . "/../Models/CategoriaModel.php";
 require_once __DIR__ . "/../Models/HistorialModel.php";
 require_once __DIR__ . "/../Helpers/AuditoriaHelper.php";
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 class PublicacionesController
 {
@@ -17,9 +19,7 @@ class PublicacionesController
         $this->categoryModel = new CategoriaModel();
         $this->historialModel = new HistorialModel();
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
     }
 
     /**
@@ -27,6 +27,7 @@ class PublicacionesController
      */
     public function indexJson()
     {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
 
         $publicaciones = $this->model->getAllAdmin();
@@ -45,6 +46,7 @@ class PublicacionesController
      */
     public function getJson($id)
     {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
 
         $item = $this->model->getById($id);
@@ -61,6 +63,8 @@ class PublicacionesController
      */
    public function createJson()
 {
+    AuthHelper::requireAdminJson();
+    RequestSecurityHelper::enforceSameOriginJson();
     header("Content-Type: application/json");
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -165,6 +169,8 @@ class PublicacionesController
      */
     public function updateJson()
     {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -219,6 +225,8 @@ class PublicacionesController
      */
     public function deleteJson()
     {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -303,6 +311,7 @@ class PublicacionesController
     // Ejemplo: Controlador de Publicaciones
 public function masVistosJson() // O publicacionesMasVistosJson
 {
+    AuthHelper::requireAdminJson();
     header("Content-Type: application/json");
 
     $fechaInicio = $_GET['fechaInicio'] ?? null;

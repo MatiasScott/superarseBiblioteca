@@ -4,7 +4,7 @@
 document.addEventListener("DOMContentLoaded", loadLibros);
 
 function loadLibros() {
-  fetch(`/libros/indexJson`)
+  fetch(`${BASE_URL}/libros/indexJson`)
     .then(r => r.json())
     .then(data => {
       const tbody = document.getElementById("tablaLibros");
@@ -167,7 +167,7 @@ function submitLibro() {
                                         EDITAR
 ============================================================================= */
 function editLibro(id) {
-  fetch(`/libros/indexJson`)
+  fetch(`${BASE_URL}/libros/indexJson`)
     .then(r => r.json())
     .then(resp => {
       const libro = resp.libros.find(l => l.id == id);

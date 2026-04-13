@@ -2,6 +2,8 @@
 // app/Controllers/AdminController.php
 
 require_once '../app/Models/UserModel.php';
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 class AdminController
 {
@@ -11,9 +13,7 @@ class AdminController
     public function __construct()
     {
         $this->basePath = defined('BASE_URL') ? BASE_URL : '';
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
 
         $this->userModel = new UserModel();
 
@@ -62,6 +62,7 @@ class AdminController
     public function createUser()
     {
         header('Content-Type: application/json');
+        RequestSecurityHelper::enforceSameOriginJson();
         $data = json_decode(file_get_contents('php://input'), true);
 
         // CAMPOS OBLIGATORIOS
@@ -113,6 +114,7 @@ class AdminController
     public function updateUser()
     {
         header("Content-Type: application/json");
+        RequestSecurityHelper::enforceSameOriginJson();
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($data['id'])) {
@@ -166,6 +168,7 @@ class AdminController
     public function deleteUser()
     {
         header("Content-Type: application/json");
+        RequestSecurityHelper::enforceSameOriginJson();
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($data['id'])) {
@@ -187,7 +190,7 @@ class AdminController
      * ===================================================== */
     private function generateTemporaryPassword()
     {
-        return bin2hex(random_bytes(4)); // 8 caracteres hexadecimales
+        return bin2hex(random_bytes(8));
     }
 
  /* =====================================================

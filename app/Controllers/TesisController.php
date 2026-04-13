@@ -3,6 +3,8 @@ require_once __DIR__ . "/../Models/TesisModel.php";
 require_once __DIR__ . "/../Models/CategoriaModel.php";
 require_once __DIR__ . "/../Helpers/AuditoriaHelper.php";
 require_once __DIR__ . "/../Models/HistorialModel.php";
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 class TesisController {
 
@@ -15,13 +17,14 @@ class TesisController {
         $this->categoryModel = new CategoriaModel();
         $this->historialModel = new HistorialModel();
 
-        if (session_status() === PHP_SESSION_NONE) session_start();
+        AuthHelper::startSession();
     }
 
     /* ============================================================
        LISTAR TESIS
     ============================================================ */
     public function indexJson() {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
 
         $tesis = $this->model->getAllAdmin();
@@ -39,6 +42,7 @@ class TesisController {
        OBTENER TESIS POR ID
     ============================================================ */
     public function getJson() {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
 
         $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -61,6 +65,8 @@ class TesisController {
        CREAR TESIS + HISTORIAL + AUDITORÍA
     ============================================================ */
     public function createJson() {
+    AuthHelper::requireAdminJson();
+    RequestSecurityHelper::enforceSameOriginJson();
     header("Content-Type: application/json");
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -118,6 +124,8 @@ class TesisController {
        EDITAR TESIS + HISTORIAL + AUDITORÍA
     ============================================================ */
     public function updateJson() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
 
         $data = json_decode(file_get_contents("php://input"), true);
@@ -170,6 +178,8 @@ class TesisController {
        ELIMINAR TESIS + AUDITORÍA
     ============================================================ */
     public function deleteJson() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
 
         $data = json_decode(file_get_contents("php://input"), true);
@@ -246,6 +256,7 @@ class TesisController {
     // Ejemplo: Controlador de Tesis
 public function masVistosJson() // O tesisMasVistosJson
 {
+    AuthHelper::requireAdminJson();
     header("Content-Type: application/json");
 
     $fechaInicio = $_GET['fechaInicio'] ?? null;

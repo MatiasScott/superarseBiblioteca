@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../Models/LibrosModel.php';
 require_once __DIR__ . '/../Models/TesisModel.php';
 require_once __DIR__ . '/../Models/PublicacionModel.php';
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -18,6 +19,9 @@ class ReporteController
 
     public function __construct()
     {
+        AuthHelper::startSession();
+        AuthHelper::requireAdminPage(defined('BASE_URL') ? BASE_URL : '');
+
         // Inicializar los tres modelos
         $this->librosModel = new LibrosModel();
         $this->tesisModel = new TesisModel();

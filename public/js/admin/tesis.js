@@ -22,7 +22,7 @@ function lanzarConfetti() {
 document.addEventListener("DOMContentLoaded", loadTesis);
 
 function loadTesis() {
-  fetch(`/tesis/indexJson`)
+  fetch(`${BASE_URL}/tesis/indexJson`)
     .then(r => r.json())
     .then(data => {
       const tbody = document.getElementById("tablaTesis");

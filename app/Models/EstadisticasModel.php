@@ -34,7 +34,7 @@ class EstadisticasModel {
 
     // Préstamos activos y atrasados
     public function prestamosActivos() {
-        $stmt = $this->conn->query("SELECT COUNT(*) AS total FROM solicitudes_prestamo WHERE estado IN ('APROBADA','ENTREGADO')");
+        $stmt = $this->conn->query("SELECT COUNT(*) AS total FROM solicitudes_prestamo WHERE estado IN ('APROBADA','RETRASADO')");
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
@@ -42,7 +42,7 @@ class EstadisticasModel {
         $stmt = $this->conn->query("
             SELECT COUNT(*) AS total 
             FROM solicitudes_prestamo
-            WHERE estado='APROBADA' AND fecha_devolucion < CURDATE()
+            WHERE (estado = 'APROBADA' AND fecha_devolucion < NOW()) OR estado = 'RETRASADO'
         ");
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
@@ -50,24 +50,32 @@ class EstadisticasModel {
     // Préstamos por mes
     public function prestamosPorMes($mes)
     {
+        $anio = (int) date('Y');
+        $inicio = sprintf('%04d-%02d-01 00:00:00', $anio, $mes);
+        $fin = date('Y-m-d H:i:s', strtotime($inicio . ' +1 month'));
+
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) AS total
             FROM solicitudes_prestamo
-            WHERE MONTH(fecha_prestamo) = ? AND estado IN ('APROBADA','ENTREGADO')
+            WHERE fecha_prestamo >= ? AND fecha_prestamo < ? AND estado IN ('APROBADA', 'ENTREGADO', 'RETRASADO')
         ");
-        $stmt->execute([$mes]);
+        $stmt->execute([$inicio, $fin]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Devoluciones por mes
     public function devolucionesPorMes($mes)
     {
+        $anio = (int) date('Y');
+        $inicio = sprintf('%04d-%02d-01 00:00:00', $anio, $mes);
+        $fin = date('Y-m-d H:i:s', strtotime($inicio . ' +1 month'));
+
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) AS total
             FROM solicitudes_prestamo
-            WHERE MONTH(fecha_devolucion) = ? AND fecha_devolucion IS NOT NULL
+            WHERE fecha_respuesta >= ? AND fecha_respuesta < ? AND estado = 'ENTREGADO'
         ");
-        $stmt->execute([$mes]);
+        $stmt->execute([$inicio, $fin]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

@@ -1,9 +1,20 @@
 <?php
 // index.php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+
+    if (class_exists(\Dotenv\Dotenv::class) && file_exists(dirname(__DIR__) . '/.env')) {
+        \Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
+    }
+}
+
+$debugMode = filter_var($_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG') ?? false, FILTER_VALIDATE_BOOL);
+
+ini_set('display_errors', $debugMode ? '1' : '0');
+ini_set('display_startup_errors', $debugMode ? '1' : '0');
+error_reporting($debugMode ? E_ALL : 0);
 
 $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
 $scriptDir = str_replace('\\', '/', dirname($scriptName));
@@ -29,6 +40,14 @@ require_once '../app/Controllers/CategoriaController.php';
 require_once '../app/Controllers/SolicitudesController.php';
 require_once '../app/Controllers/EstadisticasController.php';
 require_once '../app/Controllers/ReporteController.php';
+
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Lax');
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    ini_set('session.cookie_secure', '1');
+}
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -75,11 +94,6 @@ switch (true) {
     case ($relativeUri === '/login/check' && $method === 'POST'):
         (new LoginController())->check();
         break;
-
-    case ($relativeUri === '/dashboard'):
-    (new DashboardController())->index();
-    break;
-
 
 /* ==========================================
        DASHBOARD
@@ -324,9 +338,8 @@ case ($relativeUri === '/estadisticas/exportExcel'):
        LOGOUT
     ========================================== */
     case ($relativeUri === '/logout'):
-        session_destroy();
-        header("Location: " . BASE_URL . "/");
-        exit();
+        (new LoginController())->logout();
+        break;
 
     /* ==========================================
        404

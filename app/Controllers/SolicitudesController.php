@@ -1,5 +1,7 @@
 <?php
 require_once '../app/Models/SolicitudesModel.php';
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 class SolicitudesController
 {
@@ -7,9 +9,7 @@ class SolicitudesController
 
     public function __construct()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
 
         $this->model = new SolicitudesModel();
     }
@@ -20,11 +20,8 @@ class SolicitudesController
     public function crear()
     {
         header('Content-Type: application/json; charset=utf-8');
-
-        if (!isset($_SESSION['usuario_id'])) {
-            echo json_encode(["ok" => false, "msg" => "Debes iniciar sesión"]);
-            exit;
-        }
+        AuthHelper::requireLoginJson();
+        RequestSecurityHelper::enforceSameOriginJson();
 
         if (!isset($_POST['item_id'])) {
             echo json_encode(["ok" => false, "msg" => "Falta item_id"]);
@@ -49,6 +46,7 @@ class SolicitudesController
 ===================================================== */
 public function listar()
 {
+    AuthHelper::requireAdminJson();
     header('Content-Type: application/json; charset=utf-8');
 
     $mes = $_GET['mes'] ?? '';
@@ -78,7 +76,9 @@ public function listar()
     ====================================================== */
    public function aprobar()
 {
+    AuthHelper::requireAdminJson();
     header('Content-Type: application/json; charset=utf-8');
+    RequestSecurityHelper::enforceSameOriginJson();
 
     if (!isset($_POST['id'])) {
         echo json_encode(["ok" => false, "msg" => "Falta ID"]);
@@ -102,7 +102,9 @@ public function listar()
     ====================================================== */
  public function rechazar()
 {
+    AuthHelper::requireAdminJson();
     header('Content-Type: application/json; charset=utf-8');
+    RequestSecurityHelper::enforceSameOriginJson();
 
     if (!isset($_POST['id']) || !isset($_POST['motivo'])) {
         echo json_encode(["ok" => false, "msg" => "Falta ID o motivo"]);
@@ -126,7 +128,9 @@ public function listar()
     ====================================================== */
  public function entregar()
 {
+    AuthHelper::requireAdminJson();
     header('Content-Type: application/json; charset=utf-8');
+    RequestSecurityHelper::enforceSameOriginJson();
 
     if (!isset($_POST['id'])) {
         echo json_encode(["ok" => false, "msg" => "Falta ID"]);
@@ -178,7 +182,9 @@ public function listar()
 ====================================================== */
 public function retrasado()
 {
+    AuthHelper::requireAdminJson();
     header('Content-Type: application/json; charset=utf-8');
+    RequestSecurityHelper::enforceSameOriginJson();
 
     if (!isset($_POST['id'])) {
         echo json_encode(["ok" => false, "msg" => "Falta ID"]);
@@ -200,6 +206,7 @@ public function retrasado()
     ====================================================== */
     public function obtenerPendientes()
     {
+        AuthHelper::requireAdminJson();
         header('Content-Type: application/json; charset=utf-8');
 
         try {

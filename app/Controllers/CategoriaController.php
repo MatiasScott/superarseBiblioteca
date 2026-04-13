@@ -1,6 +1,8 @@
 <?php
 // app/Controllers/CategoriaController.php
 require_once __DIR__ . "/../Models/CategoriaModel.php";
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 
 class CategoriaController {
@@ -8,12 +10,11 @@ class CategoriaController {
 
     public function __construct() {
         $this->model = new CategoriaModel();
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
     }
 
     public function getCategoriasJson() {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
         $data = $this->model->getAll();
         echo json_encode([
@@ -24,6 +25,7 @@ class CategoriaController {
     }
 
     public function getTiposJson() {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
         $data = $this->model->getTipos();
         echo json_encode([
@@ -34,6 +36,8 @@ class CategoriaController {
     }
 
     public function createCategoria() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
         if (!isset($data['nombre']) || !isset($data['tipo_id'])) {
@@ -46,6 +50,8 @@ class CategoriaController {
     }
 
     public function updateCategoria() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
         if (!isset($data['id']) || !isset($data['nombre']) || !isset($data['tipo_id']) || !isset($data['estado'])) {
@@ -58,6 +64,8 @@ class CategoriaController {
     }
 
     public function deleteCategoria() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
         if (!isset($data['id'])) {

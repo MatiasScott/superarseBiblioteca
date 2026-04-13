@@ -4,7 +4,7 @@ let categoriasGlobal = [];
 document.addEventListener("DOMContentLoaded", loadPublicaciones);
 
 function loadPublicaciones() {
-  fetch(`/publicaciones/indexJson`)
+  fetch(`${BASE_URL}/publicaciones/indexJson`)
     .then(r => r.json())
     .then(data => {
       const tbody = document.getElementById("tablaPublicaciones");

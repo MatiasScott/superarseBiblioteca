@@ -33,6 +33,18 @@ class SolicitudesModel
         ]);
     }
 
+    private function resolveMonthRange(?string $month): array
+    {
+        if (!$month || !preg_match('/^\d{4}-\d{2}$/', $month)) {
+            return [null, null];
+        }
+
+        $start = $month . '-01 00:00:00';
+        $end = date('Y-m-d H:i:s', strtotime($start . ' +1 month'));
+
+        return [$start, $end];
+    }
+
     /* ============================================================
        CREAR SOLICITUD DE PRÉSTAMO
     ============================================================ */
@@ -83,10 +95,12 @@ public function getAll($mes = null)
 
     $params = [];
 
-    if ($mes) {
-        // Filtrar por mes YYYY-MM
-        $sql .= " WHERE DATE_FORMAT(sp.fecha_solicitud, '%Y-%m') = ?";
-        $params[] = $mes;
+    [$fechaInicio, $fechaFin] = $this->resolveMonthRange($mes);
+
+    if ($fechaInicio && $fechaFin) {
+        $sql .= " WHERE sp.fecha_solicitud >= ? AND sp.fecha_solicitud < ?";
+        $params[] = $fechaInicio;
+        $params[] = $fechaFin;
     }
 
     $sql .= " ORDER BY sp.fecha_solicitud DESC";
@@ -104,7 +118,9 @@ public function getAll($mes = null)
         $sql = "UPDATE items_biblioteca 
                 SET stock = GREATEST(stock - 1, 0) 
                 WHERE id = ? AND stock > 0";
-        return $this->conn->prepare($sql)->execute([$itemId]);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$itemId]);
+        return $stmt->rowCount() > 0;
     }
 
     private function aumentarStock($itemId)
@@ -112,7 +128,9 @@ public function getAll($mes = null)
         $sql = "UPDATE items_biblioteca 
                 SET stock = LEAST(stock + 1, numero_ejemplares) 
                 WHERE id = ?";
-        return $this->conn->prepare($sql)->execute([$itemId]);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$itemId]);
+        return $stmt->rowCount() > 0;
     }
 
     /* ============================================================
@@ -121,30 +139,41 @@ public function getAll($mes = null)
     public function aprobar($id, $usuario_id = null)
     {
         try {
-            // Verificar stock
+            $this->conn->beginTransaction();
+
             $sql = "SELECT sp.item_id, i.stock 
                     FROM solicitudes_prestamo sp
                     INNER JOIN items_biblioteca i ON i.id = sp.item_id
-                    WHERE sp.id = ?";
+                    WHERE sp.id = ? AND sp.estado = 'PENDIENTE'
+                    FOR UPDATE";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$id]);
             $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$item || $item['stock'] <= 0) return false;
+            if (!$item || (int) $item['stock'] <= 0) {
+                $this->conn->rollBack();
+                return false;
+            }
 
-            $this->reducirStock($item['item_id']);
+            if (!$this->reducirStock($item['item_id'])) {
+                $this->conn->rollBack();
+                return false;
+            }
 
-            // Actualizar solicitud
             $sql = "UPDATE solicitudes_prestamo 
                     SET estado = 'APROBADA',
                         fecha_prestamo = NOW(),
                         fecha_devolucion = DATE_ADD(NOW(), INTERVAL 5 DAY),
                         fecha_respuesta = NOW()
-                    WHERE id = ?";
+                    WHERE id = ? AND estado = 'PENDIENTE'";
             $stmt = $this->conn->prepare($sql);
             $success = $stmt->execute([$id]);
 
-            // Auditoría
+            if (!$success || $stmt->rowCount() === 0) {
+                $this->conn->rollBack();
+                return false;
+            }
+
             if ($success && $usuario_id) {
                 $this->registrarAuditoria(
                     $usuario_id,
@@ -157,9 +186,14 @@ public function getAll($mes = null)
                 );
             }
 
+            $this->conn->commit();
+
             return $success;
 
         } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             error_log("Error al aprobar solicitud: " . $e->getMessage());
             return false;
         }
@@ -206,24 +240,37 @@ public function getAll($mes = null)
     public function entregar($id, $usuario_id = null)
     {
         try {
+            $this->conn->beginTransaction();
+
             $sql = "SELECT item_id, estado 
                     FROM solicitudes_prestamo 
-                    WHERE id = ?";
+                    WHERE id = ?
+                    FOR UPDATE";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$id]);
             $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$item || !in_array($item['estado'], ['APROBADA','RETRASADO'])) 
+            if (!$item || !in_array($item['estado'], ['APROBADA', 'RETRASADO'], true)) {
+                $this->conn->rollBack();
                 return false;
+            }
 
-            $this->aumentarStock($item['item_id']);
+            if (!$this->aumentarStock($item['item_id'])) {
+                $this->conn->rollBack();
+                return false;
+            }
 
             $sql = "UPDATE solicitudes_prestamo 
                     SET estado = 'ENTREGADO', fecha_respuesta = NOW()
-                    WHERE id = ?";
-            $success = $this->conn->prepare($sql)->execute([$id]);
+                    WHERE id = ? AND estado IN ('APROBADA', 'RETRASADO')";
+            $stmt = $this->conn->prepare($sql);
+            $success = $stmt->execute([$id]);
 
-            // Auditoría
+            if (!$success || $stmt->rowCount() === 0) {
+                $this->conn->rollBack();
+                return false;
+            }
+
             if ($success && $usuario_id) {
                 $this->registrarAuditoria(
                     $usuario_id,
@@ -236,9 +283,14 @@ public function getAll($mes = null)
                 );
             }
 
+            $this->conn->commit();
+
             return $success;
 
         } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             error_log("Error al entregar solicitud: " . $e->getMessage());
             return false;
         }
@@ -329,9 +381,12 @@ public function getAll($mes = null)
 
     $params = [];
 
-    if ($mes) {
-        $sql .= " AND DATE_FORMAT(sp.fecha_solicitud, '%Y-%m') = ?";
-        $params[] = $mes;
+    [$fechaInicio, $fechaFin] = $this->resolveMonthRange($mes);
+
+    if ($fechaInicio && $fechaFin) {
+        $sql .= " AND sp.fecha_solicitud >= ? AND sp.fecha_solicitud < ?";
+        $params[] = $fechaInicio;
+        $params[] = $fechaFin;
     }
 
     if ($estado) {

@@ -162,6 +162,8 @@ public function incrementarVisitas($id)
 public function getMasVistosPorRango($tipoId, $fechaInicio, $fechaFin, $limit = 10)
     {
         try {
+            $limit = max(1, (int) $limit);
+
             $sql = "
                 SELECT 
                     i.id,

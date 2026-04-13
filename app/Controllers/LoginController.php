@@ -2,6 +2,7 @@
 // app/Controllers/LoginController.php
 
 require_once '../app/Models/UserModel.php';
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
 
 class LoginController
 {
@@ -12,9 +13,7 @@ class LoginController
     {
         $this->basePath = defined('BASE_URL') ? BASE_URL : '';
         $this->userModel = new UserModel();
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
     }
 
     public function index()
@@ -49,6 +48,7 @@ class LoginController
         }
 
         if ($user) {
+            session_regenerate_id(true);
 
             $_SESSION['logged_in'] = true;
             $_SESSION['usuario_id'] = $user['id'];
@@ -74,6 +74,19 @@ class LoginController
 
     public function logout()
     {
+        $userId = $_SESSION['usuario_id'] ?? null;
+
+        if ($userId) {
+            $this->userModel->logout($userId);
+        }
+
+        $_SESSION = [];
+
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
+
         session_destroy();
         header("Location: " . $this->basePath . "/login?success=logout");
         exit();

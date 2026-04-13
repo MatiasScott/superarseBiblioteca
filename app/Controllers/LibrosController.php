@@ -5,6 +5,8 @@ require_once __DIR__ . "/../Models/CategoriaModel.php";
 require_once __DIR__ . "/../Models/PrestamoModel.php";
 require_once __DIR__ . "/../Models/HistorialModel.php";
 require_once __DIR__ . "/../Helpers/AuditoriaHelper.php";
+require_once __DIR__ . '/../Helpers/AuthHelper.php';
+require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
 
 class LibrosController {
 
@@ -19,13 +21,12 @@ class LibrosController {
         $this->prestamoModel = new PrestamoModel();
         $this->historialModel = new HistorialModel();
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        AuthHelper::startSession();
     }
 
     // LISTADO JSON
     public function indexJson() {
+        AuthHelper::requireAdminJson();
         header("Content-Type: application/json");
 
         $libros = $this->model->getAllAdmin();
@@ -41,6 +42,8 @@ class LibrosController {
 
     // CREATE (INSERT)
     public function createJson() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -76,6 +79,8 @@ class LibrosController {
 
     // UPDATE
     public function updateJson() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -115,6 +120,8 @@ class LibrosController {
 
     // DELETE
     public function deleteJson() {
+        AuthHelper::requireAdminJson();
+        RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -190,6 +197,7 @@ class LibrosController {
 
  public function masVistosJson()
 {
+    AuthHelper::requireAdminJson();
     header("Content-Type: application/json");
 
     $fechaInicio = $_GET['fechaInicio'] ?? null;
