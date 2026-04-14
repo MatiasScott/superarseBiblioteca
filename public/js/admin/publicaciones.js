@@ -1,6 +1,19 @@
 //const BASE_URL = "";
 let categoriasGlobal = [];
 
+function clearFileInput(id) {
+  const input = document.getElementById(id);
+  if (!input) return;
+
+  try {
+    input.value = "";
+  } catch (e) {
+    // Fallback para navegadores que bloquean manipulación del input file.
+    const clone = input.cloneNode(true);
+    input.parentNode.replaceChild(clone, input);
+  }
+}
+
 function getPublicacionCoverSrc(src) {
   return src && String(src).trim() !== "" ? src : DEFAULT_COVER;
 }
@@ -113,6 +126,8 @@ document.getElementById("buscarPublicacion").addEventListener("input", function 
 function openModal() {
   document.getElementById("formPub").reset();
   document.getElementById("id").value = "";
+  clearFileInput("portada");
+  clearFileInput("link_archivo");
   document.getElementById("modalTitle").innerText = "Nueva Publicación";
   document.getElementById("campoEstadoPub").classList.add("hidden");
   setPublicacionCoverPreview("");
@@ -182,14 +197,14 @@ function editPub(id) {
       const p = resp.data;
 
       document.getElementById("id").value = p.id;
-      document.getElementById("portada").value = "";
+      clearFileInput("portada");
       document.getElementById("titulo").value = p.titulo;
       document.getElementById("autor").value = p.autor;
       document.getElementById("revista").value = p.revista;
       document.getElementById("anio").value = p.anio;
       document.getElementById("descripcion").value = p.descripcion;
       document.getElementById("categoria_id").value = p.categoria_id;
-      document.getElementById("link_archivo").value = "";
+      clearFileInput("link_archivo");
       setPublicacionCoverPreview(getPublicacionCoverSrc(p.portada));
 
       // Mostrar enlace al PDF actual si existe

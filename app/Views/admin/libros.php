@@ -69,79 +69,92 @@ include __DIR__ . '/../layouts/admin_header.php';
 ========================================================== -->
 <div id="modalLibro"
     class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm
-          flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
     <div id="modalCard"
-        class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto mt-4 sm:mt-0
-                scale-90 opacity-0 transition-all duration-200">
+        class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl mt-4 sm:mt-0
+               scale-90 opacity-0 transition-all duration-200">
 
-        <h3 id="modalLibroTitle" class="text-xl font-bold mb-3">Nuevo Libro</h3>
+        <!-- Encabezado sticky -->
+        <div class="sticky top-0 bg-white z-10 flex items-center justify-between px-6 py-4 border-b rounded-t-xl">
+            <h3 id="modalLibroTitle" class="text-lg font-bold text-[#1b4785]">Nuevo Libro</h3>
+            <button type="button" onclick="closeModalLibro()"
+                    class="text-gray-400 hover:text-red-500 transition rounded-full p-1 hover:bg-gray-100"
+                    aria-label="Cerrar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
-        <form id="formLibro" onsubmit="return false;" enctype="multipart/form-data">
+        <!-- Formulario -->
+        <form id="formLibro" class="px-6 py-5" onsubmit="return false;" enctype="multipart/form-data">
             <input type="hidden" id="libro_id">
 
-            <label>Código Institucional</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Código Institucional</label>
             <input id="libro_codigo" class="input">
 
-            <label>Portada <span class="text-red-600">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Portada <span class="text-red-600">*</span></label>
             <input id="libro_portada" type="file" accept="image/*" class="input">
-            <p class="text-xs text-gray-500 mt-1 mb-2">Obligatoria al crear. Formatos: JPG, PNG, WEBP o GIF. Máx. 5 MB. Se compress a 600×900 px.</p>
+            <p class="text-xs text-gray-500 mt-1 mb-2">Obligatoria al crear. Formatos: JPG, PNG, WEBP o GIF. Máx. 5 MB. Se redimensiona a 600×900 px.</p>
             <div id="libro_portada_preview_wrap" class="hidden mb-3">
-                <img id="libro_portada_preview" src="" alt="Vista previa de portada" class="w-20 h-28 object-cover rounded border border-gray-200 shadow-sm">
+                <img id="libro_portada_preview" src="" alt="Vista previa de portada"
+                     class="w-20 h-28 object-cover rounded border border-gray-200 shadow-sm">
             </div>
 
-            <label>Título</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Título</label>
             <input id="libro_titulo" class="input">
 
-            <label>Autor</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Autor</label>
             <input id="libro_autor" class="input">
 
-            <label>Edición</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Edición</label>
             <input id="libro_edicion" class="input">
 
-            <label>Editorial</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Editorial</label>
             <input id="libro_revista" class="input">
 
-            <label>Código de Barras</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Código de Barras</label>
             <input id="libro_codigo_barra" class="input">
 
-            <label>Categoría</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Categoría</label>
             <select id="libro_categoria" class="input"></select>
 
-            <label>Año</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Año</label>
             <input id="libro_anio" type="number" class="input">
 
-            <label>Número de ejemplares</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Número de ejemplares</label>
             <input id="libro_numero_ejemplares" type="number" class="input">
 
-            <label>Stock</label>
-            <p class="text-red-600 font-bold text-xs mt-0 mb-1">
-                * Debe ser igual al número de ejemplares.
-            </p>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Stock</label>
+            <p class="text-xs text-red-600 font-semibold mb-1">* Debe ser igual al número de ejemplares.</p>
             <input id="libro_stock" type="number" class="input">
 
-            <label>Ubicación</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Ubicación</label>
             <input id="libro_ubicacion" class="input">
 
-            <label>Descripción</label>
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Descripción</label>
             <textarea id="libro_descripcion" class="input"></textarea>
 
-            <div id="campoEstadoLibro" class="hidden mb-4">
-                <label>Estado</label>
+            <div id="campoEstadoLibro" class="hidden mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                 <select id="libro_estado" class="input">
                     <option value="ACTIVO">ACTIVO</option>
                     <option value="INACTIVO">INACTIVO</option>
                 </select>
             </div>
 
-            <div class="flex justify-end gap-2 mt-3">
-                <button onclick="closeModalLibro()"
-                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">
-                    Cancelar
-                </button>
-                <button onclick="submitLibro()"
-                        class="px-4 py-2 bg-[#1b4785] text-white rounded hover:bg-[#479990] transition">
-                    Guardar
-                </button>
+            <div class="flex justify-between items-center gap-2 mt-6 pt-4 border-t">
+                <p class="text-xs text-gray-500">Campos <span class="text-red-600">*</span> obligatorios</p>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeModalLibro()"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-medium">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="submitLibro()"
+                            class="px-4 py-2 bg-[#1b4785] text-white rounded-lg hover:bg-[#479990] transition text-sm font-medium">
+                        Guardar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
