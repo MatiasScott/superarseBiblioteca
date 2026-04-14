@@ -1,4 +1,8 @@
 RewriteEngine On
+Options -Indexes
+
+# No exponer archivos ocultos (.env, .git, etc.)
+RewriteRule "(^|/)\." - [F]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

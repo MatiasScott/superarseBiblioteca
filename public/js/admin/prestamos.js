@@ -1,6 +1,100 @@
 /* =============================
    CARGAR SOLICITUDES
 ============================= */
+const SOLICITUDES_PAGE_SIZE = 30;
+let solicitudesData = [];
+let solicitudesCurrentPage = 1;
+
+function ensureSolicitudesPaginationWrap() {
+    let wrap = document.getElementById("paginacionSolicitudes");
+    if (wrap) return wrap;
+
+    const tableBody = document.querySelector("#tablaSolicitudes tbody");
+    const tableContainer = tableBody?.closest(".overflow-x-auto");
+    if (!tableContainer || !tableContainer.parentNode) return null;
+
+    wrap = document.createElement("div");
+    wrap.id = "paginacionSolicitudes";
+    wrap.className = "mt-4 flex flex-wrap items-center justify-center gap-2";
+    tableContainer.parentNode.insertBefore(wrap, tableContainer.nextSibling);
+    return wrap;
+}
+
+function renderizarPaginacionSolicitudes() {
+    const wrap = ensureSolicitudesPaginationWrap();
+    if (!wrap) return;
+
+    const totalPages = Math.ceil(solicitudesData.length / SOLICITUDES_PAGE_SIZE);
+    if (totalPages <= 1) {
+        wrap.innerHTML = "";
+        return;
+    }
+
+    const buttons = [];
+    for (let i = 1; i <= totalPages; i++) {
+        buttons.push(`
+            <button
+                type="button"
+                onclick="cambiarPaginaSolicitudes(${i})"
+                class="px-3 py-1.5 rounded-md border text-sm ${i === solicitudesCurrentPage
+                    ? 'bg-[#1b4785] text-white border-[#1b4785]'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+                ${i}
+            </button>
+        `);
+    }
+
+    wrap.innerHTML = buttons.join('');
+}
+
+function renderizarSolicitudesTabla() {
+    const tbody = document.querySelector("#tablaSolicitudes tbody");
+    if (!tbody) return;
+
+    const start = (solicitudesCurrentPage - 1) * SOLICITUDES_PAGE_SIZE;
+    const pageRows = solicitudesData.slice(start, start + SOLICITUDES_PAGE_SIZE);
+
+    if (!pageRows.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="text-center py-6 text-gray-500">
+                    No hay solicitudes registradas
+                </td>
+            </tr>`;
+        return;
+    }
+
+    tbody.innerHTML = pageRows.map(s => {
+        const estado = s.estado || "-";
+        const estadoClass = obtenerClaseEstado(estado);
+        const botones = generarBotones(estado, s.id);
+
+        return `
+            <tr>
+                <td class="px-4 py-3">${s.usuario_nombre || "-"}</td>
+                <td class="px-4 py-3">${s.usuario_apellido || "-"}</td>
+                <td class="px-4 py-3">${s.carrera || "-"}</td>
+                <td class="px-4 py-3">${s.telefono || "-"}</td>
+                <td class="px-4 py-3">${s.curso || "-"}</td>
+                <td class="px-4 py-3">${s.libro_titulo || "-"}</td>
+                <td class="px-4 py-3">${s.stock ?? 0} / ${s.numero_ejemplares ?? 0}</td>
+                <td class="px-4 py-3">${formatearFecha(s.fecha_solicitud)}</td>
+                <td class="px-4 py-3">${formatearFechaRespuesta(s.fecha_respuesta)}</td>
+                <td class="px-4 py-3">
+                    <span class="${estadoClass}">${estado}</span>
+                </td>
+                <td class="px-4 py-3">${botones}</td>
+            </tr>`;
+    }).join('');
+}
+
+function cambiarPaginaSolicitudes(page) {
+    const totalPages = Math.max(1, Math.ceil(solicitudesData.length / SOLICITUDES_PAGE_SIZE));
+    solicitudesCurrentPage = Math.min(Math.max(1, page), totalPages);
+    renderizarSolicitudesTabla();
+    renderizarPaginacionSolicitudes();
+}
+
 function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
 
     const url = `${BASE_URL}/solicitudes/list?mes=${filtroMes}&estado=${filtroEstado}`;
@@ -8,44 +102,11 @@ function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
     fetch(url, { credentials: "include" })
         .then(r => r.json())
         .then(res => {
-
-            const tbody = document.querySelector("#tablaSolicitudes tbody");
-            tbody.innerHTML = "";
-
             const data = res.data ?? [];
-
-            if (!res.success || data.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="11" class="text-center py-6 text-gray-500">
-                            No hay solicitudes registradas
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.map(s => {
-                const estado = s.estado || "-";
-                const estadoClass = obtenerClaseEstado(estado);
-                const botones = generarBotones(estado, s.id);
-
-                return `
-                    <tr>
-                        <td class="px-4 py-3">${s.usuario_nombre || "-"}</td>
-                        <td class="px-4 py-3">${s.usuario_apellido || "-"}</td>
-                        <td class="px-4 py-3">${s.carrera || "-"}</td>
-                        <td class="px-4 py-3">${s.telefono || "-"}</td>
-                        <td class="px-4 py-3">${s.curso || "-"}</td>
-                        <td class="px-4 py-3">${s.libro_titulo || "-"}</td>
-                        <td class="px-4 py-3">${s.stock ?? 0} / ${s.numero_ejemplares ?? 0}</td>
-                        <td class="px-4 py-3">${formatearFecha(s.fecha_solicitud)}</td>
-                        <td class="px-4 py-3">${formatearFechaRespuesta(s.fecha_respuesta)}</td>
-                        <td class="px-4 py-3">
-                            <span class="${estadoClass}">${estado}</span>
-                        </td>
-                        <td class="px-4 py-3">${botones}</td>
-                    </tr>`;
-            }).join('');
+            solicitudesData = res.success ? data : [];
+            solicitudesCurrentPage = 1;
+            renderizarSolicitudesTabla();
+            renderizarPaginacionSolicitudes();
         })
         .catch(err => {
             document.querySelector("#tablaSolicitudes tbody").innerHTML = `
@@ -54,6 +115,8 @@ function cargarSolicitudes(filtroMes = "", filtroEstado = "") {
                         Error al cargar solicitudes
                     </td>
                 </tr>`;
+            const wrap = ensureSolicitudesPaginationWrap();
+            if (wrap) wrap.innerHTML = "";
             console.error(err);
         });
 }

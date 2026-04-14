@@ -273,13 +273,6 @@ case ($relativeUri === '/publicaciones'):
    PUBLICACIONES CRUD
 ========================================== */
 
-case ($relativeUri === '/publicaciones'):
-    echo json_encode([
-        "success" => false,
-        "message" => "Usa /publicaciones/indexJson para la API"
-    ]);
-    break;
-
 case ($relativeUri === '/publicaciones/indexJson'):
     (new PublicacionesController())->indexJson();
     break;

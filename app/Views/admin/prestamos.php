@@ -51,7 +51,7 @@ include __DIR__ . '/../layouts/admin_header.php';
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-xl -mx-2 sm:mx-0">
+    <div class="overflow-x-auto border rounded-xl -mx-2 sm:mx-0">
         <table class="min-w-[940px] w-full text-sm" id="tablaSolicitudes">
             <thead class="bg-gray-100 border-b-2 border-[#1b4785] sticky top-0 z-10">
                 <tr>
@@ -77,6 +77,6 @@ include __DIR__ . '/../layouts/admin_header.php';
     </div>
 </div>
 
-<script src="<?= BASE_URL ?>/js/admin/prestamos.js"></script>
+<script src="<?= BASE_URL ?>/js/admin/prestamos.js?v=20260414a"></script>
 
 <?php include __DIR__ . '/../layouts/admin_footer.php'; ?>
