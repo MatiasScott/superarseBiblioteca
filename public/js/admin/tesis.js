@@ -1,4 +1,9 @@
 // Simple helper para validar campos y mostrar errores
+const TESIS_PAGE_SIZE = 30;
+let tesisData = [];
+let tesisFiltered = [];
+let tesisCurrentPage = 1;
+
 function validarCamposTesis(data) {
   const errores = [];
   if (!data.titulo || data.titulo.trim() === "") errores.push("Título");
@@ -49,13 +54,121 @@ function bindTesisCoverPreview() {
   });
 }
 
+function ensureTesisPaginationWrap() {
+  let wrap = document.getElementById("paginacionTesis");
+  if (wrap) return wrap;
+
+  const tableBody = document.getElementById("tablaTesis");
+  const tableContainer = tableBody?.closest(".overflow-x-auto");
+  if (!tableContainer || !tableContainer.parentNode) return null;
+
+  wrap = document.createElement("div");
+  wrap.id = "paginacionTesis";
+  wrap.className = "mt-4 flex flex-wrap items-center justify-center gap-2";
+  tableContainer.parentNode.insertBefore(wrap, tableContainer.nextSibling);
+  return wrap;
+}
+
+function renderTesisTable() {
+  const tbody = document.getElementById("tablaTesis");
+  if (!tbody) return;
+
+  const start = (tesisCurrentPage - 1) * TESIS_PAGE_SIZE;
+  const pageRows = tesisFiltered.slice(start, start + TESIS_PAGE_SIZE);
+
+  if (!pageRows.length) {
+    tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6">No hay registros</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pageRows.map(t => `
+      <tr class="border-b">
+        <td class="px-3 py-2">${escapeHtml(t.codigo)}</td>
+        <td class="px-3 py-2">${escapeHtml(t.titulo)}</td>
+        <td class="px-3 py-2">
+          <div class="w-14 h-20 overflow-hidden rounded shadow-sm">
+            <img src="${escapeAttr(t.portada || DEFAULT_COVER)}"
+                 class="w-full h-full object-cover" alt="Portada">
+          </div>
+        </td>
+        <td class="px-3 py-2">${escapeHtml(t.autor)}</td>
+        <td class="px-3 py-2">${escapeHtml(t.tutor || '')}</td>
+        <td class="px-3 py-2">${escapeHtml(t.universidad || '')}</td>
+        <td class="px-3 py-2">${escapeHtml(t.categoria_nombre || '')}</td>
+        <td class="px-3 py-2">${escapeHtml(t.anio || '')}</td>
+        <td class="px-3 py-2">${escapeHtml(t.descripcion || '')}</td>
+        <td class="px-3 py-2">
+          <a href="${escapeAttr(t.link_archivo || '#')}" target="_blank"
+             class="text-blue-600 underline">Ver</a>
+        </td>
+        <td class="px-3 py-2">
+          <span class="${t.estado === 'ACTIVO'
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'} px-3 py-1 rounded text-sm font-medium">
+            ${escapeHtml(t.estado || '')}
+          </span>
+        </td>
+        <td class="px-3 py-2">
+          <button onclick="editTesis(${t.id})" class="px-3 py-1 bg-yellow-500 text-white rounded">✏️</button>
+          <button onclick="deleteTesis(${t.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+}
+
+function renderTesisPagination() {
+  const wrap = ensureTesisPaginationWrap();
+  if (!wrap) return;
+
+  const totalPages = Math.ceil(tesisFiltered.length / TESIS_PAGE_SIZE);
+  if (totalPages <= 1) {
+    wrap.innerHTML = "";
+    return;
+  }
+
+  const buttons = [];
+  for (let i = 1; i <= totalPages; i++) {
+    buttons.push(`
+      <button
+        type="button"
+        onclick="changeTesisPage(${i})"
+        class="px-3 py-1.5 rounded-md border text-sm ${i === tesisCurrentPage
+          ? 'bg-[#1b4785] text-white border-[#1b4785]'
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+        ${i}
+      </button>
+    `);
+  }
+
+  wrap.innerHTML = buttons.join('');
+}
+
+function applyTesisFilter() {
+  const input = document.getElementById("buscarTesis");
+  const filtro = (input?.value || "").toLowerCase().trim();
+
+  tesisFiltered = tesisData.filter(t => {
+    const titulo = (t.titulo || "").toLowerCase();
+    return titulo.includes(filtro);
+  });
+
+  tesisCurrentPage = 1;
+  renderTesisTable();
+  renderTesisPagination();
+}
+
+function changeTesisPage(page) {
+  const totalPages = Math.max(1, Math.ceil(tesisFiltered.length / TESIS_PAGE_SIZE));
+  tesisCurrentPage = Math.min(Math.max(1, page), totalPages);
+  renderTesisTable();
+  renderTesisPagination();
+}
+
 function loadTesis() {
   fetch(`${BASE_URL}/tesis/indexJson`)
     .then(r => r.json())
     .then(data => {
-      const tbody = document.getElementById("tablaTesis");
       const selectCategoria = document.getElementById("tesis_categoria");
-      tbody.innerHTML = "";
       selectCategoria.innerHTML = `<option value="">Seleccione...</option>`;
 
       if (Array.isArray(data.categorias)) {
@@ -65,48 +178,27 @@ function loadTesis() {
       }
 
       if (!data.success || !Array.isArray(data.tesis) || data.tesis.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6">No hay registros</td></tr>`;
+        tesisData = [];
+        tesisFiltered = [];
+        tesisCurrentPage = 1;
+        renderTesisTable();
+        renderTesisPagination();
         return;
       }
 
-      tbody.innerHTML = data.tesis.map(t => `
-          <tr class="border-b">
-            <td class="px-3 py-2">${escapeHtml(t.codigo)}</td>
-            <td class="px-3 py-2">${escapeHtml(t.titulo)}</td>
-            <td class="px-3 py-2">
-              <div class="w-14 h-20 overflow-hidden rounded shadow-sm">
-                <img src="${escapeAttr(t.portada || DEFAULT_COVER)}"
-                     class="w-full h-full object-cover" alt="Portada">
-              </div>
-            </td>
-            <td class="px-3 py-2">${escapeHtml(t.autor)}</td>
-            <td class="px-3 py-2">${escapeHtml(t.tutor || '')}</td>
-            <td class="px-3 py-2">${escapeHtml(t.universidad || '')}</td>
-            <td class="px-3 py-2">${escapeHtml(t.categoria_nombre || '')}</td>
-            <td class="px-3 py-2">${escapeHtml(t.anio || '')}</td>
-            <td class="px-3 py-2">${escapeHtml(t.descripcion || '')}</td>
-            <td class="px-3 py-2">
-              <a href="${escapeAttr(t.link_archivo || '#')}" target="_blank"
-                 class="text-blue-600 underline">Ver</a>
-            </td>
-            <td class="px-3 py-2">
-              <span class="${t.estado === 'ACTIVO'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'} px-3 py-1 rounded text-sm font-medium">
-                ${escapeHtml(t.estado || '')}
-              </span>
-            </td>
-            <td class="px-3 py-2">
-              <button onclick="editTesis(${t.id})" class="px-3 py-1 bg-yellow-500 text-white rounded">✏️</button>
-              <button onclick="deleteTesis(${t.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
-            </td>
-          </tr>
-        `).join('');
+      tesisData = data.tesis;
+      applyTesisFilter();
     })
     .catch(err => {
       console.error("Error cargando tesis:", err);
-      document.getElementById("tablaTesis").innerHTML =
-        `<tr><td colspan="11" class="text-center text-red-600 py-6">Error al cargar datos</td></tr>`;
+      tesisData = [];
+      tesisFiltered = [];
+      tesisCurrentPage = 1;
+      const tbody = document.getElementById("tablaTesis");
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center text-red-600 py-6">Error al cargar datos</td></tr>`;
+      }
+      renderTesisPagination();
     });
 }
 
@@ -116,13 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById("buscarTesis").addEventListener("input", function () {
-  const filtro = this.value.toLowerCase();
-  const filas = document.querySelectorAll("#tablaTesis tr");
-
-  filas.forEach(fila => {
-    const titulo = fila.cells[1]?.textContent.toLowerCase() || "";
-    fila.style.display = titulo.includes(filtro) ? "" : "none";
-  });
+  applyTesisFilter();
 });
 
 /* ========= ESCAPE ========= */

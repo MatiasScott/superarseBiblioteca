@@ -30,7 +30,7 @@ include __DIR__ . '/../layouts/admin_header.php';
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-xl -mx-2 sm:mx-0">
+    <div class="overflow-x-auto border rounded-xl -mx-2 sm:mx-0">
         <table class="min-w-[900px] w-full text-sm">
             <thead class="bg-gray-100 border-b-2 border-[#1b4785] sticky top-0 z-10">
                 <tr>
@@ -157,6 +157,6 @@ function togglePassword() {
 }
 </script>
 
-<script src="<?= BASE_URL ?>/js/admin/usuarios.js" defer></script>
+<script src="<?= BASE_URL ?>/js/admin/usuarios.js?v=20260414a" defer></script>
 
 <?php include __DIR__ . '/../layouts/admin_footer.php'; ?>

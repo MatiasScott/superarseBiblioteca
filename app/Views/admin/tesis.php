@@ -30,7 +30,7 @@ include __DIR__ . '/../layouts/admin_header.php';
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-xl -mx-2 sm:mx-0">
+    <div class="overflow-x-auto border rounded-xl -mx-2 sm:mx-0">
         <table class="min-w-[1100px] w-full text-sm">
             <thead class="bg-gray-100 border-b-2 sticky top-0 z-10">
                 <tr>
@@ -146,6 +146,6 @@ include __DIR__ . '/../layouts/admin_header.php';
     </div>
 </div>
 
-<script src="<?= BASE_URL ?>/js/admin/tesis.js"></script>
+<script src="<?= BASE_URL ?>/js/admin/tesis.js?v=20260414b"></script>
 
 <?php include __DIR__ . '/../layouts/admin_footer.php'; ?>

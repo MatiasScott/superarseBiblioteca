@@ -16,6 +16,9 @@ let rolesData = [];
 let buscadorUsuariosInicializado = false;
 let usuariosCargando = false;
 let rolesCargando = false;
+const USUARIOS_PAGE_SIZE = 30;
+let usuariosFiltered = [];
+let usuariosCurrentPage = 1;
 
 /* ===========================
    MODAL
@@ -67,7 +70,7 @@ function cargarRoles() {
 =========================== */
 function cargarUsuarios(forceReload = false) {
     if (!forceReload && usuariosData.length) {
-        renderizarUsuarios();
+        aplicarFiltroUsuarios();
         return;
     }
 
@@ -81,16 +84,83 @@ function cargarUsuarios(forceReload = false) {
         .then(r => r.json())
         .then(data => {
             usuariosData = data.data || data;
-            renderizarUsuarios();
+            aplicarFiltroUsuarios();
         })
         .finally(() => {
             usuariosCargando = false;
         });
 }
 
+function ensureUsuariosPaginationWrap() {
+    let wrap = document.getElementById('paginacionUsuarios');
+    if (wrap) return wrap;
+
+    const tableBody = document.getElementById('usuariosTableBody');
+    const tableContainer = tableBody?.closest('.overflow-x-auto');
+    if (!tableContainer || !tableContainer.parentNode) return null;
+
+    wrap = document.createElement('div');
+    wrap.id = 'paginacionUsuarios';
+    wrap.className = 'mt-4 flex flex-wrap items-center justify-center gap-2';
+    tableContainer.parentNode.insertBefore(wrap, tableContainer.nextSibling);
+    return wrap;
+}
+
+function renderizarPaginacionUsuarios() {
+    const wrap = ensureUsuariosPaginationWrap();
+    if (!wrap) return;
+
+    const totalPages = Math.ceil(usuariosFiltered.length / USUARIOS_PAGE_SIZE);
+    if (totalPages <= 1) {
+        wrap.innerHTML = '';
+        return;
+    }
+
+    const buttons = [];
+    for (let i = 1; i <= totalPages; i++) {
+        buttons.push(`
+            <button
+                type="button"
+                onclick="cambiarPaginaUsuarios(${i})"
+                class="px-3 py-1.5 rounded-md border text-sm ${i === usuariosCurrentPage
+                    ? 'bg-[#1b4785] text-white border-[#1b4785]'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+                ${i}
+            </button>
+        `);
+    }
+
+    wrap.innerHTML = buttons.join('');
+}
+
+function aplicarFiltroUsuarios() {
+    const buscador = document.getElementById('buscarUsuario');
+    const filtro = (buscador?.value || '').toLowerCase().trim();
+
+    usuariosFiltered = usuariosData.filter(usuario => {
+        const nombre = `${usuario.nombre || ''} ${usuario.apellido || ''}`.toLowerCase();
+        const cedula = (usuario.cedula || '').toLowerCase();
+        return nombre.includes(filtro) || cedula.includes(filtro);
+    });
+
+    usuariosCurrentPage = 1;
+    renderizarUsuarios();
+    renderizarPaginacionUsuarios();
+}
+
+function cambiarPaginaUsuarios(page) {
+    const totalPages = Math.max(1, Math.ceil(usuariosFiltered.length / USUARIOS_PAGE_SIZE));
+    usuariosCurrentPage = Math.min(Math.max(1, page), totalPages);
+    renderizarUsuarios();
+    renderizarPaginacionUsuarios();
+}
+
 function renderizarUsuarios() {
     const tbody = document.getElementById('usuariosTableBody');
-    const rows = usuariosData.map(usuario => {
+    const start = (usuariosCurrentPage - 1) * USUARIOS_PAGE_SIZE;
+    const pageRows = usuariosFiltered.slice(start, start + USUARIOS_PAGE_SIZE);
+
+    const rows = pageRows.map(usuario => {
         const estadoClass =
             usuario.estado === 'ACTIVO'
                 ? 'bg-green-100 text-green-700'
@@ -290,15 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const buscador = document.getElementById('buscarUsuario');
         if (buscador) {
             buscador.addEventListener('input', function () {
-                const filtro = this.value.toLowerCase();
-                document.querySelectorAll('#usuariosTableBody tr').forEach(fila => {
-                    const nombre = fila.cells[0]?.textContent.toLowerCase() || '';
-                    const cedula = fila.cells[1]?.textContent.toLowerCase() || '';
-                    fila.style.display =
-                        nombre.includes(filtro) || cedula.includes(filtro)
-                            ? ''
-                            : 'none';
-                });
+                aplicarFiltroUsuarios();
             });
             buscadorUsuariosInicializado = true;
         }

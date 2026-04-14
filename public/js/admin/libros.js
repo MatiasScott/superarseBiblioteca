@@ -1,6 +1,11 @@
 /* ============================================================================
                                 CARGAR LIBROS
 ============================================================================= */
+const LIBROS_PAGE_SIZE = 30;
+let librosData = [];
+let librosFiltered = [];
+let librosCurrentPage = 1;
+
 function getLibroCoverSrc(src) {
   return src && String(src).trim() !== "" ? src : DEFAULT_COVER;
 }
@@ -36,13 +41,115 @@ function bindLibroCoverPreview() {
   });
 }
 
+function ensureLibrosPaginationWrap() {
+  let wrap = document.getElementById("paginacionLibros");
+  if (wrap) return wrap;
+
+  const tableBody = document.getElementById("tablaLibros");
+  const tableContainer = tableBody?.closest(".overflow-x-auto");
+  if (!tableContainer || !tableContainer.parentNode) return null;
+
+  wrap = document.createElement("div");
+  wrap.id = "paginacionLibros";
+  wrap.className = "mt-4 flex flex-wrap items-center justify-center gap-2";
+  tableContainer.parentNode.insertBefore(wrap, tableContainer.nextSibling);
+  return wrap;
+}
+
+function renderLibrosTable() {
+  const tbody = document.getElementById("tablaLibros");
+  if (!tbody) return;
+
+  const start = (librosCurrentPage - 1) * LIBROS_PAGE_SIZE;
+  const pageRows = librosFiltered.slice(start, start + LIBROS_PAGE_SIZE);
+
+  if (!pageRows.length) {
+    tbody.innerHTML = `<tr><td colspan="13" class="text-center py-6">No hay libros registrados</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pageRows.map(l => `
+      <tr class="border-b">
+        <td class="px-3 py-2">${l.codigo}</td>
+        <td class="px-3 py-2">
+          <img src="${getLibroCoverSrc(l.portada)}" class="w-14 h-20 object-cover rounded shadow">
+        </td>
+        <td class="px-3 py-2">${l.titulo}</td>
+        <td class="px-3 py-2">${l.autor}</td>
+        <td class="px-3 py-2">${l.edicion}</td>
+        <td class="px-3 py-2">${l.categoria_nombre}</td>
+        <td class="px-3 py-2">${l.anio}</td>
+        <td class="px-3 py-2">${l.numero_ejemplares}</td>
+        <td class="px-3 py-2">${l.stock}</td>
+        <td class="px-3 py-2">${l.revista}</td>
+        <td class="px-3 py-2">${l.ubicacion}</td>
+        <td class="px-3 py-2">
+          <span class="${l.estado === 'ACTIVO'
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'} px-3 py-1 rounded text-sm font-medium">
+            ${l.estado}
+          </span>
+        </td>
+        <td class="px-3 py-2">
+          <button onclick="editLibro(${l.id})" class="px-3 py-1 bg-yellow-500 text-white rounded">✏️</button>
+          <button onclick="deleteLibro(${l.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+}
+
+function renderLibrosPagination() {
+  const wrap = ensureLibrosPaginationWrap();
+  if (!wrap) return;
+
+  const totalPages = Math.ceil(librosFiltered.length / LIBROS_PAGE_SIZE);
+  if (totalPages <= 1) {
+    wrap.innerHTML = "";
+    return;
+  }
+
+  const buttons = [];
+  for (let i = 1; i <= totalPages; i++) {
+    buttons.push(`
+      <button
+        type="button"
+        onclick="changeLibrosPage(${i})"
+        class="px-3 py-1.5 rounded-md border text-sm ${i === librosCurrentPage
+          ? 'bg-[#1b4785] text-white border-[#1b4785]'
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+        ${i}
+      </button>
+    `);
+  }
+
+  wrap.innerHTML = buttons.join('');
+}
+
+function applyLibrosFilter() {
+  const input = document.getElementById("buscarLibro");
+  const filtro = (input?.value || "").toLowerCase().trim();
+
+  librosFiltered = librosData.filter(l => {
+    const titulo = (l.titulo || "").toLowerCase();
+    return titulo.includes(filtro);
+  });
+
+  librosCurrentPage = 1;
+  renderLibrosTable();
+  renderLibrosPagination();
+}
+
+function changeLibrosPage(page) {
+  const totalPages = Math.max(1, Math.ceil(librosFiltered.length / LIBROS_PAGE_SIZE));
+  librosCurrentPage = Math.min(Math.max(1, page), totalPages);
+  renderLibrosTable();
+  renderLibrosPagination();
+}
+
 function loadLibros() {
   fetch(`${BASE_URL}/libros/indexJson`)
     .then(r => r.json())
     .then(data => {
-      const tbody = document.getElementById("tablaLibros");
-      tbody.innerHTML = "";
-
 /* =============================================================================
                         1️⃣ SIEMPRE cargar categorías
 ==============================================================================*/
@@ -59,42 +166,16 @@ function loadLibros() {
                          2️⃣ Luego validar libros
 ==============================================================================*/
       if (!data.success || !data.libros.length) {
-        tbody.innerHTML =
-          `<tr><td colspan="10" class="text-center py-6">No hay libros registrados</td></tr>`;
+        librosData = [];
+        librosFiltered = [];
+        librosCurrentPage = 1;
+        renderLibrosTable();
+        renderLibrosPagination();
         return;
       }
 
-/* =============================================================================
-                         3️⃣ Renderizar libros
-==============================================================================*/
-      tbody.innerHTML = data.libros.map(l => `
-          <tr class="border-b">
-            <td class="px-3 py-2">${l.codigo}</td>
-            <td class="px-3 py-2">
-              <img src="${getLibroCoverSrc(l.portada)}" class="w-14 h-20 object-cover rounded shadow">
-            </td>
-            <td class="px-3 py-2">${l.titulo}</td>
-            <td class="px-3 py-2">${l.autor}</td>
-            <td class="px-3 py-2">${l.edicion}</td>
-            <td class="px-3 py-2">${l.categoria_nombre}</td>
-            <td class="px-3 py-2">${l.anio}</td>
-            <td class="px-3 py-2">${l.numero_ejemplares}</td>
-            <td class="px-3 py-2">${l.stock}</td>
-            <td class="px-3 py-2">${l.revista}</td>
-            <td class="px-3 py-2">${l.ubicacion}</td>
-            <td class="px-3 py-2">
-              <span class="${l.estado === 'ACTIVO'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'} px-3 py-1 rounded text-sm font-medium">
-                ${l.estado}
-              </span>
-            </td>
-            <td class="px-3 py-2">
-              <button onclick="editLibro(${l.id})" class="px-3 py-1 bg-yellow-500 text-white rounded">✏️</button>
-              <button onclick="deleteLibro(${l.id})" class="px-3 py-1 bg-red-600 text-white rounded">🗑️</button>
-            </td>
-          </tr>
-        `).join('');
+      librosData = data.libros;
+      applyLibrosFilter();
     });
 }
 
@@ -104,13 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById("buscarLibro").addEventListener("input", function() {
-  const filtro = this.value.toLowerCase();
-  const filas = document.querySelectorAll("#tablaLibros tr");
-
-  filas.forEach(fila => {
-    const titulo = fila.cells[2]?.textContent.toLowerCase() || "";
-    fila.style.display = titulo.includes(filtro) ? "" : "none";
-  });
+  applyLibrosFilter();
 });
 
 /* =============================================================================
