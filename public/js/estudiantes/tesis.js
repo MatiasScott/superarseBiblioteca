@@ -57,8 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const buscador = document.getElementById('buscadorTesis');
     const cards = document.querySelectorAll('.tesis-card');
     const noResults = document.getElementById('noResultsMessageTesis');
+    const contador = document.getElementById('contadorResultadosTesis');
 
     if (!buscador) return;
+
+    if (contador) {
+        contador.innerText = `Mostrando ${cards.length} resultados`;
+    }
 
     buscador.addEventListener('input', () => {
         const filtro = buscador.value.toLowerCase().trim();
@@ -77,5 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         noResults?.classList.toggle('hidden', visibles !== 0);
+        if (contador) {
+            contador.innerText = `Mostrando ${visibles} resultados`;
+        }
     });
 });

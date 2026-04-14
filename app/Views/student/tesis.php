@@ -5,6 +5,15 @@ include __DIR__ . '/../layouts/student_header.php';
 ?>
 
 <div class="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 border-l-4 border-[#479990]">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+        <p class="text-xs sm:text-sm text-gray-500">
+            Inicio / Panel estudiante / Tesis
+        </p>
+        <a href="<?= BASE_URL ?>/student/dashboard"
+           class="inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium border border-[#1b4785] text-[#1b4785] hover:bg-[#1b4785] hover:text-white transition">
+            Volver al panel
+        </a>
+    </div>
     <h2 class="text-2xl sm:text-3xl font-bold text-[#1b4785] mb-2">🎓 Repositorio de Tesis</h2>
     <p class="text-gray-600 text-sm sm:text-base">
         Consulta tesis por tema, carrera o autor y accede al documento completo desde esta vista.
@@ -14,6 +23,9 @@ include __DIR__ . '/../layouts/student_header.php';
 <div class="max-w-3xl mx-auto px-1 sm:px-4 mt-2 sm:mt-4 mb-6">
     <input type="text" id="buscadorTesis" placeholder="🔍 Buscar por título, autor, carrera o año..."
            class="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-superarse-morado-medio focus:outline-none">
+    <p id="contadorResultadosTesis" class="mt-2 text-xs sm:text-sm text-gray-500">
+        Mostrando <?= count($tesis ?? []) ?> resultados
+    </p>
 </div>
 
 <div id="gridTesis"

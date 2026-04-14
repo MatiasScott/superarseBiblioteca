@@ -112,6 +112,7 @@ window.solicitarPrestamo = function (id) {
 ====================== */
 window.filtrarLibros = function () {
     const input = document.getElementById('buscador').value.toLowerCase();
+    const contador = document.getElementById('contadorResultadosLibros');
     let visibles = 0;
 
     document.querySelectorAll('#gridLibros > div').forEach(div => {
@@ -123,4 +124,16 @@ window.filtrarLibros = function () {
 
     document.getElementById('noResultsMessage')
         ?.classList.toggle('hidden', visibles !== 0);
+
+    if (contador) {
+        contador.innerText = `Mostrando ${visibles} resultados`;
+    }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const contador = document.getElementById('contadorResultadosLibros');
+    if (!contador) return;
+
+    const total = document.querySelectorAll('#gridLibros > div').length;
+    contador.innerText = `Mostrando ${total} resultados`;
+});

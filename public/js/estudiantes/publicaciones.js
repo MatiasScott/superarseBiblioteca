@@ -51,6 +51,7 @@ window.cerrarModalPublicacion = function () {
 window.filtrarPublicaciones = function () {
     const texto = document.getElementById("buscador").value.toLowerCase();
     const contenedor = document.getElementById("gridPublicaciones");
+    const contador = document.getElementById('contadorResultadosPublicaciones');
     let visibles = 0;
 
     contenedor.innerHTML = "";
@@ -98,4 +99,15 @@ window.filtrarPublicaciones = function () {
 
     document.getElementById('noResultsMessagePublicaciones')
         ?.classList.toggle('hidden', visibles !== 0);
+
+    if (contador) {
+        contador.innerText = `Mostrando ${visibles} resultados`;
+    }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const contador = document.getElementById('contadorResultadosPublicaciones');
+    if (!contador) return;
+
+    contador.innerText = `Mostrando ${publicaciones.length} resultados`;
+});

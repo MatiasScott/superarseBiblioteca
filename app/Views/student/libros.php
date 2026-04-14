@@ -6,6 +6,15 @@ include __DIR__ . '/../layouts/student_header.php';
 ?>
 
 <div class="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 border-l-4 border-[#1b4785]">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+        <p class="text-xs sm:text-sm text-gray-500">
+            Inicio / Panel estudiante / Libros
+        </p>
+        <a href="<?= BASE_URL ?>/student/dashboard"
+           class="inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium border border-[#1b4785] text-[#1b4785] hover:bg-[#1b4785] hover:text-white transition">
+            Volver al panel
+        </a>
+    </div>
     <h2 class="text-2xl sm:text-3xl font-bold text-[#1b4785] mb-2">📚 Catálogo de Libros</h2>
     <p class="text-gray-600 text-sm sm:text-base">
         Explora libros disponibles, revisa su stock y solicita préstamos sin salir del panel de estudiante.
@@ -19,6 +28,9 @@ include __DIR__ . '/../layouts/student_header.php';
         placeholder="🔍 Buscar libro por título y autor..."
         class="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-superarse-morado-medio focus:outline-none"
         onkeyup="filtrarLibros()">
+    <p id="contadorResultadosLibros" class="mt-2 text-xs sm:text-sm text-gray-500">
+        Mostrando <?= count($libros ?? []) ?> resultados
+    </p>
 </div>
 
 <div id="gridLibros"
