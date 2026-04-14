@@ -43,7 +43,7 @@ if ($usuarioLogueado) {
         type="text"
         placeholder="🔍 Buscar libro por título y autor ..."
         class="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-superarse-morado-medio focus:outline-none"
-        onkeyup="filtrarLibros()"
+        onkeyup="applyLibrosFilter()"
     >
 </div>
 
