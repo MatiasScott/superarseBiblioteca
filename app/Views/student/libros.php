@@ -27,7 +27,7 @@ include __DIR__ . '/../layouts/student_header.php';
         type="text"
         placeholder="🔍 Buscar libro por título y autor..."
         class="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-superarse-morado-medio focus:outline-none"
-        onkeyup="filtrarLibros()">
+        onkeyup="applyLibrosFilter()">
     <p id="contadorResultadosLibros" class="mt-2 text-xs sm:text-sm text-gray-500">
         Mostrando <?= count($libros ?? []) ?> resultados
     </p>
@@ -90,6 +90,8 @@ include __DIR__ . '/../layouts/student_header.php';
         </div>
     <?php endforeach; ?>
 </div>
+
+<div id="paginationLibros" class="px-1 sm:px-4"></div>
 
 <div id="noResultsMessage" class="px-4 py-12 text-center text-gray-500 hidden">
     <p class="text-lg">No se encontraron libros que coincidan con la búsqueda.</p>

@@ -158,6 +158,18 @@ function renderLibrosTable() {
                     <div class="col-span-2 bg-orange-500 text-white rounded-lg py-1 text-center mt-1">
                         👁️ Visitas: <span id="visitasLibro-${libro.id}">${libro.visitas}</span>
                     </div>
+                    <div class="col-span-2 grid grid-cols-2 gap-2 mt-1">
+                        <button type="button"
+                                class="bg-[#1b4785] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaLibro('apa7', ${libro.id}, event)">
+                            Cita APA 7
+                        </button>
+                        <button type="button"
+                                class="bg-[#164c7e] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaLibro('ieee', ${libro.id}, event)">
+                            Cita IEEE
+                        </button>
+                    </div>
                 </div>
             </div>
         `;

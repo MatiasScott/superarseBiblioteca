@@ -50,6 +50,8 @@ include __DIR__ . '/../layouts/student_header.php';
     <?php endforeach; ?>
 </div>
 
+<div id="paginationPublicaciones" class="px-1 sm:px-4"></div>
+
 <div id="noResultsMessagePublicaciones" class="px-4 py-12 text-center text-gray-500 hidden">
     <p class="text-lg">No se encontraron publicaciones que coincidan con la búsqueda.</p>
 </div>

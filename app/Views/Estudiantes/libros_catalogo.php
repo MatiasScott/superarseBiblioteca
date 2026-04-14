@@ -120,7 +120,7 @@ if ($usuarioLogueado) {
     };
 </script>
 
-<script src="<?= BASE_URL ?>/js/estudiantes/libros.js?v=20260414c"></script>
+<script src="<?= BASE_URL ?>/js/estudiantes/libros.js?v=20260414d"></script>
 
 <?php
 if ($usuarioLogueado) {

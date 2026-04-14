@@ -93,7 +93,7 @@ window.APP = {
 };
 </script>
 
-<script src="<?= BASE_URL ?>/js/estudiantes/tesis.js?v=20260414c"></script>
+<script src="<?= BASE_URL ?>/js/estudiantes/tesis.js?v=20260414d"></script>
 
 <?php
 if ($usuarioLogueado) {

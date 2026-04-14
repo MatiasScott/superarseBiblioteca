@@ -89,7 +89,7 @@ if ($usuarioLogueado) {
     window.APP.publicaciones = <?= json_encode($publicaciones ?? []) ?>;
 </script>
 
-<script src="<?= BASE_URL ?>/js/estudiantes/publicaciones.js?v=20260414c"></script>
+<script src="<?= BASE_URL ?>/js/estudiantes/publicaciones.js?v=20260414d"></script>
 
 <?php
 if ($usuarioLogueado) {

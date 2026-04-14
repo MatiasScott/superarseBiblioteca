@@ -85,6 +85,18 @@ function renderPublicacionesTable() {
                     <div class="col-span-2 bg-blue-500 text-white rounded p-1 mt-2">
                         👁️ Visitas: <span id="visitasPublicacion-${p.id}">${p.visitas}</span>
                     </div>
+                    <div class="col-span-2 grid grid-cols-2 gap-2 mt-1">
+                        <button type="button"
+                                class="bg-[#1b4785] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaPublicacion('apa7', ${p.id}, event)">
+                            Cita APA 7
+                        </button>
+                        <button type="button"
+                                class="bg-[#164c7e] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaPublicacion('ieee', ${p.id}, event)">
+                            Cita IEEE
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -176,3 +188,66 @@ if (document.readyState === 'loading') {
     // DOM ya está cargado (script ejecutado tardíamente)
     initPublicacionesPage();
 }
+
+function inicialesAutorPublicacion(nombreCompleto) {
+    return String(nombreCompleto || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((parte) => `${parte.charAt(0).toUpperCase()}.`)
+        .join(' ');
+}
+
+function copiarTextoPublicacion(texto) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(texto);
+    }
+
+    const area = document.createElement('textarea');
+    area.value = texto;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    return Promise.resolve();
+}
+
+window.generarCitaPublicacion = function (formato, id, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    const p = publicaciones.find((item) => item.id == id);
+    if (!p) return;
+
+    const autor = p.autor || 'Autor desconocido';
+    const anio = p.anio || 's.f.';
+    const titulo = p.titulo || 'Sin titulo';
+    const revista = p.revista || 'Revista no registrada';
+
+    let cita = '';
+    if (String(formato).toLowerCase() === 'ieee') {
+        cita = `${inicialesAutorPublicacion(autor)} ${autor.split(' ').slice(-1)[0]}, "${titulo}," ${revista}, ${anio}.`;
+    } else {
+        cita = `${autor}. (${anio}). ${titulo}. ${revista}.`;
+    }
+
+    copiarTextoPublicacion(cita)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Cita generada',
+                text: 'La cita fue copiada al portapapeles.',
+                confirmButtonColor: '#1b4785'
+            });
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'info',
+                title: 'Cita generada',
+                text: cita,
+                confirmButtonColor: '#1b4785'
+            });
+        });
+};
