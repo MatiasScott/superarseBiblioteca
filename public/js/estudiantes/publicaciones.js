@@ -1,6 +1,10 @@
 const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
 const publicaciones = window.APP?.publicaciones || [];
 
+const PAGESIZE_PUBLICACIONES = 30;
+let filteredPublicaciones = [];
+let currentPublicacionesPage = 1;
+
 /* ==========================
    MODAL PUBLICACIÓN
 ========================== */
@@ -46,68 +50,110 @@ window.cerrarModalPublicacion = function () {
 };
 
 /* ==========================
+   RENDERIZAR TABLA PUBLICACIONES
+========================== */
+function renderPublicacionesTable() {
+    const grid = document.getElementById('gridPublicaciones');
+    if (!grid) return;
+    
+    const start = (currentPublicacionesPage - 1) * PAGESIZE_PUBLICACIONES;
+    const end = start + PAGESIZE_PUBLICACIONES;
+    const page = filteredPublicaciones.slice(start, end);
+    
+    grid.innerHTML = '';
+    
+    page.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer';
+        div.onclick = () => abrirModal(p.id);
+        div.innerHTML = `
+            <img src="${htmlEscapePublicaciones(p.portada)}" class="w-full h-64 object-cover">
+            <div class="p-4">
+                <h3 class="font-bold text-lg">${htmlEscapePublicaciones(p.titulo)}</h3>
+                <p class="text-gray-600">${htmlEscapePublicaciones(p.autor)}</p>
+                <p class="text-gray-500 text-sm">${htmlEscapePublicaciones(p.categoria_nombre)}</p>
+                <div class="grid grid-cols-2 gap-2 text-sm mt-2 text-center">
+                    <div class="bg-superarse-amarillo text-white rounded p-1">
+                        Año: ${htmlEscapePublicaciones(p.anio ?? '-')}
+                    </div>
+                    <div class="bg-superarse-morado-medio text-white rounded p-1">
+                        Revista: ${htmlEscapePublicaciones(p.revista)}
+                    </div>
+                    <div class="col-span-2 bg-superarse-rosa text-white rounded p-1">
+                        Código: ${htmlEscapePublicaciones(p.codigo)}
+                    </div>
+                    <div class="col-span-2 bg-blue-500 text-white rounded p-1 mt-2">
+                        👁️ Visitas: <span id="visitasPublicacion-${p.id}">${p.visitas}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(div);
+    });
+}
+
+function htmlEscapePublicaciones(s) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(s || '').replace(/[&<>"']/g, c => map[c]);
+}
+
+/* ==========================
+   RENDERIZAR PAGINACIÓN PUBLICACIONES
+========================== */
+function renderPublicacionesPagination() {
+    const paginationDiv = document.getElementById('paginationPublicaciones');
+    if (!paginationDiv) return;
+    
+    const totalPages = Math.ceil(filteredPublicaciones.length / PAGESIZE_PUBLICACIONES);
+    paginationDiv.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const nav = document.createElement('nav');
+    nav.className = 'flex justify-center gap-2 my-6';
+    
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `px-3 py-1 rounded border ${i === currentPublicacionesPage ? 'bg-superarse-morado-oscuro text-white' : 'border-gray-300 hover:bg-gray-100'}`;
+        btn.onclick = () => changePublicacionesPage(i);
+        nav.appendChild(btn);
+    }
+    
+    paginationDiv.appendChild(nav);
+}
+
+window.changePublicacionesPage = function (page) {
+    currentPublicacionesPage = page;
+    renderPublicacionesTable();
+    renderPublicacionesPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+/* ==========================
    FILTRO PUBLICACIONES
 ========================== */
 window.filtrarPublicaciones = function () {
     const texto = document.getElementById("buscador").value.toLowerCase();
-    const contenedor = document.getElementById("gridPublicaciones");
-    const contador = document.getElementById('contadorResultadosPublicaciones');
-    let visibles = 0;
-
-    contenedor.innerHTML = "";
-
-    publicaciones
-        .filter(p =>
-            p.titulo.toLowerCase().includes(texto) ||
-            p.autor.toLowerCase().includes(texto) ||
-            String(p.anio ?? '').includes(texto)
-        )
-        .forEach(p => {
-            contenedor.innerHTML += `
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
-                     onclick="abrirModal(${p.id})">
-
-                    <img src="${p.portada}" class="w-full h-64 object-cover">
-
-                    <div class="p-4">
-                        <h3 class="font-bold text-lg">${p.titulo}</h3>
-                        <p class="text-gray-600">${p.autor}</p>
-                        <p class="text-gray-500 text-sm">${p.categoria_nombre}</p>
-
-                        <div class="grid grid-cols-2 gap-2 text-sm mt-2 text-center">
-                            <div class="bg-superarse-amarillo text-white rounded p-1">
-                                Año: ${p.anio ?? '-'}
-                            </div>
-                            <div class="bg-superarse-morado-medio text-white rounded p-1">
-                                Revista: ${p.revista}
-                            </div>
-                            <div class="col-span-2 bg-superarse-rosa text-white rounded p-1">
-                                Código: ${p.codigo}
-                            </div>
-                            <div class="col-span-2 bg-blue-500 text-white rounded p-1 mt-2">
-                                👁️ Visitas:
-                                <span id="visitasPublicacion-${p.id}">
-                                    ${p.visitas}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            visibles++;
-        });
-
-    document.getElementById('noResultsMessagePublicaciones')
-        ?.classList.toggle('hidden', visibles !== 0);
-
-    if (contador) {
-        contador.innerText = `Mostrando ${visibles} resultados`;
-    }
+    
+    filteredPublicaciones = publicaciones.filter(p =>
+        p.titulo.toLowerCase().includes(texto) ||
+        p.autor.toLowerCase().includes(texto) ||
+        String(p.anio ?? '').includes(texto)
+    );
+    
+    currentPublicacionesPage = 1;
+    renderPublicacionesTable();
+    renderPublicacionesPagination();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const contador = document.getElementById('contadorResultadosPublicaciones');
-    if (!contador) return;
-
-    contador.innerText = `Mostrando ${publicaciones.length} resultados`;
+    filteredPublicaciones = publicaciones;
+    renderPublicacionesTable();
+    renderPublicacionesPagination();
+    
+    const buscador = document.getElementById("buscador");
+    if (buscador) {
+        buscador.addEventListener('keyup', () => filtrarPublicaciones());
+    }
 });

@@ -2,6 +2,10 @@ const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
 const libros = window.APP?.libros || [];
 const usuarioLogueado = !!window.APP?.usuarioLogueado;
 
+const PAGESIZE_LIBROS = 30;
+let filteredLibros = [];
+let currentLibrosPage = 1;
+
 /* ======================
    MODAL BONITO ALERTA
 ====================== */
@@ -110,34 +114,124 @@ window.solicitarPrestamo = function (id) {
 };
 
 /* ======================
-   FILTRAR LIBROS
+   RENDERIZAR TABLA LIBROS
 ====================== */
-window.filtrarLibros = function () {
-    const input = document.getElementById('buscador').value.toLowerCase();
-    const contador = document.getElementById('contadorResultadosLibros');
-    let visibles = 0;
-
-    document.querySelectorAll('#gridLibros > div').forEach(div => {
-        const texto = div.innerText.toLowerCase();
-        const mostrar = texto.includes(input);
-        div.style.display = mostrar ? '' : 'none';
-        if (mostrar) visibles++;
+function renderLibrosTable() {
+    const grid = document.getElementById('gridLibros');
+    if (!grid) return;
+    
+    const start = (currentLibrosPage - 1) * PAGESIZE_LIBROS;
+    const end = start + PAGESIZE_LIBROS;
+    const page = filteredLibros.slice(start, end);
+    
+    grid.innerHTML = '';
+    
+    page.forEach(libro => {
+        const div = document.createElement('div');
+        div.className = 'bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition cursor-pointer flex flex-col';
+        div.onclick = () => abrirModal(libro.id);
+        div.innerHTML = `
+            <img src="${htmlEscapeLibros(libro.portada)}" alt="${htmlEscapeLibros(libro.titulo)}" class="w-full h-52 sm:h-56 md:h-60 object-cover">
+            <div class="p-4 flex flex-col flex-grow">
+                <h3 class="font-bold text-base sm:text-lg text-superarse-morado-oscuro line-clamp-2">
+                    ${htmlEscapeLibros(libro.titulo)}
+                </h3>
+                <p class="text-gray-600 text-xs sm:text-sm mt-1">
+                    Autor: ${htmlEscapeLibros(libro.autor)}
+                </p>
+                <p class="text-gray-500 text-xs sm:text-sm mb-3">
+                    Categoria: ${htmlEscapeLibros(libro.categoria_nombre)}
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm mt-auto">
+                    <div class="bg-blue-500 text-white rounded-lg py-1 text-center">
+                        Ubicación: ${htmlEscapeLibros(libro.ubicacion)}
+                    </div>
+                    <div class="bg-blue-500 text-white rounded-lg py-1 text-center">
+                        Edición: ${htmlEscapeLibros(libro.edicion)}
+                    </div>
+                    <div class="bg-green-500 text-white rounded-lg py-1 text-center">
+                        Stock: ${libro.stock}
+                    </div>
+                    <div class="bg-green-500 text-white rounded-lg py-1 text-center">
+                        Código: ${htmlEscapeLibros(libro.codigo)}
+                    </div>
+                    <div class="col-span-2 bg-orange-500 text-white rounded-lg py-1 text-center mt-1">
+                        👁️ Visitas: <span id="visitasLibro-${libro.id}">${libro.visitas}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(div);
     });
+}
 
-    document.getElementById('noResultsMessage')
-        ?.classList.toggle('hidden', visibles !== 0);
+function htmlEscapeLibros(s) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(s || '').replace(/[&<>"']/g, c => map[c]);
+}
 
-    if (contador) {
-        contador.innerText = `Mostrando ${visibles} resultados`;
+/* ======================
+   RENDERIZAR PAGINACIÓN LIBROS
+====================== */
+function renderLibrosPagination() {
+    const paginationDiv = document.getElementById('paginationLibros');
+    if (!paginationDiv) return;
+    
+    const totalPages = Math.ceil(filteredLibros.length / PAGESIZE_LIBROS);
+    paginationDiv.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const nav = document.createElement('nav');
+    nav.className = 'flex justify-center gap-2 my-6';
+    
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `px-3 py-1 rounded border ${i === currentLibrosPage ? 'bg-superarse-morado-oscuro text-white' : 'border-gray-300 hover:bg-gray-100'}`;
+        btn.onclick = () => changeLibrosPage(i);
+        nav.appendChild(btn);
     }
+    
+    paginationDiv.appendChild(nav);
+}
+
+window.changeLibrosPage = function (page) {
+    currentLibrosPage = page;
+    renderLibrosTable();
+    renderLibrosPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const contador = document.getElementById('contadorResultadosLibros');
-    if (!contador) return;
+/* ======================
+   APLICAR FILTRO LIBROS
+====================== */
+window.applyLibrosFilter = function () {
+    const buscador = document.getElementById('buscador');
+    const filtro = buscador ? buscador.value.toLowerCase().trim() : '';
+    
+    filteredLibros = libros.filter(libro => {
+        const texto = (libro.titulo || '') + (libro.autor || '') + (libro.categoria_nombre || '');
+        return texto.toLowerCase().includes(filtro);
+    });
+    
+    currentLibrosPage = 1;
+    renderLibrosTable();
+    renderLibrosPagination();
+};
 
-    const total = document.querySelectorAll('#gridLibros > div').length;
-    contador.innerText = `Mostrando ${total} resultados`;
+/* ======================
+   FILTRAR LIBROS
+====================== */
+document.addEventListener('DOMContentLoaded', () => {
+    const buscador = document.getElementById('buscador');
+    if (!buscador) return;
+    
+    filteredLibros = libros;
+    renderLibrosTable();
+    renderLibrosPagination();
+    
+    buscador.addEventListener('keyup', () => applyLibrosFilter());
 });
 
 function inicialesAutor(nombreCompleto) {

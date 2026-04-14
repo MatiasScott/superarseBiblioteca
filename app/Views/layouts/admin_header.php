@@ -94,7 +94,7 @@ $sidebarModules = [
          SIDEBAR
     ========================================================== -->
     <aside id="adminSidebar"
-            class="fixed lg:static top-0 left-0 z-40 h-screen w-[min(18rem,85vw)] lg:w-64
+            class="fixed lg:sticky lg:top-0 lg:self-start top-0 left-0 z-40 h-screen w-[min(18rem,85vw)] lg:w-64
                   bg-gradient-to-b from-[#1b4785] to-[#2a6596]
                   text-white flex flex-col shadow-xl shrink-0
                 lg:translate-x-0">

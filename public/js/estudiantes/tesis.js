@@ -1,6 +1,10 @@
 const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
 const tesis = window.APP.tesis || [];
 
+const PAGESIZE_TESIS = 30;
+let filteredTesis = [];
+let currentTesisPage = 1;
+
 /* ======================
    MODAL TESIS
 ====================== */
@@ -51,41 +55,121 @@ window.cerrarModalTesis = function () {
 };
 
 /* ======================
+   RENDERIZAR TABLA TESIS
+====================== */
+function renderTesisTable() {
+    const grid = document.getElementById('gridTesis');
+    if (!grid) return;
+    
+    const start = (currentTesisPage - 1) * PAGESIZE_TESIS;
+    const end = start + PAGESIZE_TESIS;
+    const page = filteredTesis.slice(start, end);
+    
+    grid.innerHTML = '';
+    
+    page.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition cursor-pointer flex flex-col';
+        div.onclick = () => abrirModal(t.id);
+        div.innerHTML = `
+            <img src="${htmlEscapeTesis(t.portada)}" alt="${htmlEscapeTesis(t.codigo)}" class="w-full h-52 sm:h-56 md:h-60 object-cover">
+            <div class="p-4 flex flex-col flex-grow">
+                <h3 class="font-bold text-base sm:text-lg text-superarse-morado-oscuro line-clamp-2">
+                    ${htmlEscapeTesis(t.titulo)}
+                </h3>
+                <p class="text-gray-600 text-xs sm:text-sm mt-1">
+                    Autor: ${htmlEscapeTesis(t.autor)}
+                </p>
+                <p class="text-gray-600 text-xs sm:text-sm">
+                    Tutor: ${htmlEscapeTesis(t.tutor)}
+                </p>
+                <p class="text-gray-600 text-xs sm:text-sm">
+                    Carrera: ${htmlEscapeTesis(t.categoria_nombre)}
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm mt-3">
+                    <div class="bg-blue-500 text-white rounded-lg py-1 text-center">
+                        Año: ${htmlEscapeTesis(t.anio ?? '-')}
+                    </div>
+                    <div class="bg-green-500 text-white rounded-lg py-1 text-center">
+                        Código: ${htmlEscapeTesis(t.codigo)}
+                    </div>
+                    <div class="col-span-2 bg-orange-500 text-white rounded-lg py-1 text-center mt-1">
+                        👁️ Visitas: <span id="VisitasTesis-${t.id}">${t.visitas}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(div);
+    });
+}
+
+function htmlEscapeTesis(s) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(s || '').replace(/[&<>"']/g, c => map[c]);
+}
+
+/* ======================
+   RENDERIZAR PAGINACIÓN TESIS
+====================== */
+function renderTesisPagination() {
+    const paginationDiv = document.getElementById('paginationTesis');
+    if (!paginationDiv) return;
+    
+    const totalPages = Math.ceil(filteredTesis.length / PAGESIZE_TESIS);
+    paginationDiv.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const nav = document.createElement('nav');
+    nav.className = 'flex justify-center gap-2 my-6';
+    
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `px-3 py-1 rounded border ${i === currentTesisPage ? 'bg-superarse-morado-oscuro text-white' : 'border-gray-300 hover:bg-gray-100'}`;
+        btn.onclick = () => changeTesisPage(i);
+        nav.appendChild(btn);
+    }
+    
+    paginationDiv.appendChild(nav);
+}
+
+window.changeTesisPage = function (page) {
+    currentTesisPage = page;
+    renderTesisTable();
+    renderTesisPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+/* ======================
+   APLICAR FILTRO TESIS
+====================== */
+window.applyTesisFilter = function () {
+    const buscador = document.getElementById('buscadorTesis');
+    const filtro = buscador ? buscador.value.toLowerCase().trim() : '';
+    
+    filteredTesis = tesis.filter(t => {
+        const texto = (t.titulo || '') + (t.autor || '') + (t.categoria_nombre || '') + (t.anio || '');
+        return texto.toLowerCase().includes(filtro);
+    });
+    
+    currentTesisPage = 1;
+    renderTesisTable();
+    renderTesisPagination();
+};
+
+/* ======================
    FILTRO TESIS
 ====================== */
 document.addEventListener('DOMContentLoaded', () => {
     const buscador = document.getElementById('buscadorTesis');
-    const cards = document.querySelectorAll('.tesis-card');
-    const noResults = document.getElementById('noResultsMessageTesis');
-    const contador = document.getElementById('contadorResultadosTesis');
-
     if (!buscador) return;
-
-    if (contador) {
-        contador.innerText = `Mostrando ${cards.length} resultados`;
-    }
-
-    buscador.addEventListener('input', () => {
-        const filtro = buscador.value.toLowerCase().trim();
-        let visibles = 0;
-
-        cards.forEach(card => {
-            const texto =
-                (card.dataset.titulo || '') +
-                (card.dataset.autor || '') +
-                (card.dataset.carrera || '') +
-                (card.dataset.anio || '');
-
-            const mostrar = texto.includes(filtro);
-            card.style.display = mostrar ? 'block' : 'none';
-            if (mostrar) visibles++;
-        });
-
-        noResults?.classList.toggle('hidden', visibles !== 0);
-        if (contador) {
-            contador.innerText = `Mostrando ${visibles} resultados`;
-        }
-    });
+    
+    filteredTesis = tesis;
+    renderTesisTable();
+    renderTesisPagination();
+    
+    buscador.addEventListener('input', () => applyTesisFilter());
 });
 
 function inicialesAutorTesis(nombreCompleto) {

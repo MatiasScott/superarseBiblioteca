@@ -1,6 +1,11 @@
 <?php
-// Asegúrate de que $tesis viene desde el controlador
-?>
+$usuarioLogueado = isset($_SESSION['usuario_id']);
+if ($usuarioLogueado) {
+    $pageTitle = 'Catálogo de Tesis';
+    $activeStudentModule = 'tesis';
+    include __DIR__ . '/../layouts/student_header.php';
+} else {
+    ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,6 +34,9 @@
 
 <!-- Navbar -->
  <?php include(__DIR__ . '/../heatherGeneral.php'); ?>
+    <?php
+}
+?>
 
 <!-- Buscador único -->
 <div class="max-w-3xl mx-auto px-4 mt-6">
@@ -48,63 +56,10 @@
           md:grid-cols-3
           lg:grid-cols-4
           gap-5">
-
-    <?php foreach ($tesis as $t): ?>
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden
-            hover:shadow-2xl transition
-            cursor-pointer tesis-card
-            flex flex-col"
-     data-titulo="<?= strtolower(htmlspecialchars($t['titulo'])) ?>"
-     data-autor="<?= strtolower(htmlspecialchars($t['autor'])) ?>"
-     data-carrera="<?= strtolower(htmlspecialchars($t['categoria_nombre'])) ?>"
-     data-anio="<?= strtolower((string)($t['anio'] ?? '')) ?>"
-     onclick="abrirModal(<?= $t['id'] ?>)">
-
-
-            <!-- Portada -->
-            <img src="<?= htmlspecialchars($t['portada']) ?>"
-                 alt="<?= htmlspecialchars($t['codigo']) ?>"
-                 class="w-full h-52 sm:h-56 md:h-60 object-cover">
-
-            <!-- Contenido -->
-            <div class="p-4 flex flex-col flex-grow">
-
-                <h3 class="font-bold text-base sm:text-lg text-superarse-morado-oscuro line-clamp-2">
-                    <?= htmlspecialchars($t['titulo']) ?>
-                </h3>
-
-                <p class="text-gray-600 text-xs sm:text-sm mt-1">
-                    Autor: <?= htmlspecialchars($t['autor']) ?>
-                </p>
-
-                <p class="text-gray-600 text-xs sm:text-sm">
-                    Tutor: <?= htmlspecialchars($t['tutor']) ?>
-                </p>
-
-                <p class="text-gray-600 text-xs sm:text-sm">
-                    Carrera: <?= htmlspecialchars($t['categoria_nombre']) ?>
-                </p>
-
-                <!-- Badges -->
-                <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm mt-3">
-                    <div class="bg-blue-500 text-white rounded-lg py-1 text-center">
-                        Año: <?= htmlspecialchars($t['anio'] ?? '-') ?>
-                    </div>
-                    <div class="bg-green-500 text-white rounded-lg py-1 text-center">
-                        Código: <?= htmlspecialchars($t['codigo']) ?>
-                    </div>
-
-                    <div class="col-span-2 bg-orange-500 text-white rounded-lg py-1 text-center mt-1">
-                        👁️ Visitas:
-                        <span id="VisitasTesis-<?= $t['id'] ?>">
-                            <?= htmlspecialchars($t['visitas']) ?>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    <?php endforeach; ?>
 </div>
+
+<!-- Paginación -->
+<div id="paginationTesis" class="max-w-7xl mx-auto px-4"></div>
 
 <!-- Mensaje cuando no hay resultados -->
 <div id="noResultsMessageTesis" class="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500 hidden">
@@ -139,10 +94,16 @@ window.APP = {
 };
 </script>
 
+<script src="<?= BASE_URL ?>/js/estudiantes/tesis.js?v=20260414c"></script>
 
-<script src="<?= BASE_URL ?>/js/estudiantes/tesis.js?v=<?= time() ?>"></script>
-
-
-    <?php include(__DIR__ . '/../footer.php'); ?>
+<?php
+if ($usuarioLogueado) {
+    include __DIR__ . '/../layouts/student_footer.php';
+} else {
+    include __DIR__ . '/../footer.php';
+    ?>
 </body>
 </html>
+<?php
+}
+?>
