@@ -1,8 +1,9 @@
 <?php
 $usuarioLogueado = isset($_SESSION['usuario_id']);
+$pageTitle = 'Catálogo de Publicaciones';
+$activeStudentModule = 'publicaciones';
+
 if ($usuarioLogueado) {
-    $pageTitle = 'Catálogo de Publicaciones';
-    $activeStudentModule = 'publicaciones';
     include __DIR__ . '/../layouts/student_header.php';
 } else {
     ?>
@@ -31,10 +32,7 @@ if ($usuarioLogueado) {
     </script>
 </head>
 <body class="bg-gray-50">
-
-<!-- NAVBAR -->
-
- <?php include(__DIR__ . '/../heatherGeneral.php'); ?>
+    <?php include(__DIR__ . '/../heatherGeneral.php'); ?>
     <?php
 }
 ?>

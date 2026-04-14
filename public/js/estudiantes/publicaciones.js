@@ -147,13 +147,32 @@ window.filtrarPublicaciones = function () {
     renderPublicacionesPagination();
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    filteredPublicaciones = publicaciones;
+/* ==========================
+   INICIALIZAR PUBLICACIONES (Auto-init)
+========================== */
+function initPublicacionesPage() {
+    const buscador = document.getElementById('buscador');
+    const grid = document.getElementById('gridPublicaciones');
+    
+    if (!grid) {
+        console.warn('[publicaciones.js] Grid no encontrado. Reintentando en 100ms...');
+        setTimeout(initPublicacionesPage, 100);
+        return;
+    }
+    
+    filteredPublicaciones = publicaciones || [];
     renderPublicacionesTable();
     renderPublicacionesPagination();
     
-    const buscador = document.getElementById("buscador");
     if (buscador) {
         buscador.addEventListener('keyup', () => filtrarPublicaciones());
     }
-});
+}
+
+// Ejecuta cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPublicacionesPage);
+} else {
+    // DOM ya está cargado (script ejecutado tardíamente)
+    initPublicacionesPage();
+}

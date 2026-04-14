@@ -221,18 +221,34 @@ window.applyLibrosFilter = function () {
 };
 
 /* ======================
-   FILTRAR LIBROS
+   FILTRAR LIBROS (Auto-init)
 ====================== */
-document.addEventListener('DOMContentLoaded', () => {
+function initLibrosPage() {
     const buscador = document.getElementById('buscador');
-    if (!buscador) return;
+    const grid = document.getElementById('gridLibros');
     
-    filteredLibros = libros;
+    if (!grid) {
+        console.warn('[libros.js] Grid no encontrado. Reintentando en 100ms...');
+        setTimeout(initLibrosPage, 100);
+        return;
+    }
+    
+    filteredLibros = libros || [];
     renderLibrosTable();
     renderLibrosPagination();
     
-    buscador.addEventListener('keyup', () => applyLibrosFilter());
-});
+    if (buscador) {
+        buscador.addEventListener('keyup', () => applyLibrosFilter());
+    }
+}
+
+// Ejecuta cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLibrosPage);
+} else {
+    // DOM ya está cargado (script ejecutado tardíamente)
+    initLibrosPage();
+}
 
 function inicialesAutor(nombreCompleto) {
     return String(nombreCompleto || '')

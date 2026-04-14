@@ -159,18 +159,34 @@ window.applyTesisFilter = function () {
 };
 
 /* ======================
-   FILTRO TESIS
+   FILTRO TESIS (Auto-init)
 ====================== */
-document.addEventListener('DOMContentLoaded', () => {
+function initTesisPage() {
     const buscador = document.getElementById('buscadorTesis');
-    if (!buscador) return;
+    const grid = document.getElementById('gridTesis');
     
-    filteredTesis = tesis;
+    if (!grid) {
+        console.warn('[tesis.js] Grid no encontrado. Reintentando en 100ms...');
+        setTimeout(initTesisPage, 100);
+        return;
+    }
+    
+    filteredTesis = tesis || [];
     renderTesisTable();
     renderTesisPagination();
     
-    buscador.addEventListener('input', () => applyTesisFilter());
-});
+    if (buscador) {
+        buscador.addEventListener('input', () => applyTesisFilter());
+    }
+}
+
+// Ejecuta cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTesisPage);
+} else {
+    // DOM ya está cargado (script ejecutado tardíamente)
+    initTesisPage();
+}
 
 function inicialesAutorTesis(nombreCompleto) {
     return String(nombreCompleto || '')

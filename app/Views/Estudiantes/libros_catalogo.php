@@ -1,8 +1,9 @@
 <?php
 $usuarioLogueado = isset($_SESSION['usuario_id']);
+$pageTitle = 'Catálogo de Libros';
+$activeStudentModule = 'libros';
+
 if ($usuarioLogueado) {
-    $pageTitle = 'Catálogo de Libros';
-    $activeStudentModule = 'libros';
     include __DIR__ . '/../layouts/student_header.php';
 } else {
     ?>
@@ -23,7 +24,6 @@ if ($usuarioLogueado) {
                         'superarse-morado-oscuro': '#1b4785ff',
                         'superarse-morado-medio': '#479990ff',
                         'superarse-rosa': '#164c7eff',
-                        
                     }
                 }
             }
@@ -31,9 +31,7 @@ if ($usuarioLogueado) {
     </script>
 </head>
 <body class="bg-gray-50">
-
-<!-- Navbar -->
- <?php include(__DIR__ . '/../heatherGeneral.php'); ?>
+    <?php include(__DIR__ . '/../heatherGeneral.php'); ?>
     <?php
 }
 ?>
