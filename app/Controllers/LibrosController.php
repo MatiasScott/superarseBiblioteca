@@ -7,6 +7,7 @@ require_once __DIR__ . "/../Models/HistorialModel.php";
 require_once __DIR__ . "/../Helpers/AuditoriaHelper.php";
 require_once __DIR__ . '/../Helpers/AuthHelper.php';
 require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
+require_once __DIR__ . '/../Helpers/UploadHelper.php';
 
 class LibrosController {
 
@@ -45,12 +46,25 @@ class LibrosController {
         AuthHelper::requireAdminJson();
         RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getRequestData();
 
         if (!isset($data['titulo']) || !isset($data['codigo'])) {
             echo json_encode(["success" => false, "message" => "Título y código son obligatorios"]);
             exit;
         }
+
+        $noImagen = !isset($_FILES['portada_file']) || (int)($_FILES['portada_file']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE;
+        if ($noImagen) {
+            echo json_encode(["success" => false, "message" => "La portada es obligatoria al crear el libro"]);
+            exit;
+        }
+
+        $upload = UploadHelper::storeImage('portada_file');
+        if (!$upload['success']) {
+            echo json_encode(["success" => false, "message" => $upload['message'] ?? 'No se pudo subir la portada']);
+            exit;
+        }
+        $data['portada'] = $upload['path'] ?? ($data['portada'] ?? '');
 
         $nuevoId = $this->model->insert($data);
 
@@ -82,7 +96,7 @@ class LibrosController {
         AuthHelper::requireAdminJson();
         RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getRequestData();
 
         if (!isset($data['id'])) {
             echo json_encode(["success" => false, "message" => "ID obligatorio"]);
@@ -92,6 +106,12 @@ class LibrosController {
         $id = $data['id'];
 
         $antes = $this->model->getById($id);
+        $upload = UploadHelper::storeImage('portada_file', $antes['portada'] ?? null);
+        if (!$upload['success']) {
+            echo json_encode(["success" => false, "message" => $upload['message'] ?? 'No se pudo subir la portada']);
+            exit;
+        }
+        $data['portada'] = $upload['path'] ?? ($antes['portada'] ?? '');
         $ok = $this->model->update($data);
         $despues = $this->model->getById($id);
 
@@ -227,6 +247,16 @@ class LibrosController {
     ]);
     exit;
 }
+
+    private function getRequestData(): array
+    {
+        if (!empty($_POST)) {
+            return $_POST;
+        }
+
+        $raw = json_decode(file_get_contents("php://input"), true);
+        return is_array($raw) ? $raw : [];
+    }
 
 
 }

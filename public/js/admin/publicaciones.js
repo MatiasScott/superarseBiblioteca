@@ -1,6 +1,41 @@
 //const BASE_URL = "";
 let categoriasGlobal = [];
 
+function getPublicacionCoverSrc(src) {
+  return src && String(src).trim() !== "" ? src : DEFAULT_COVER;
+}
+
+function setPublicacionCoverPreview(src) {
+  const wrap = document.getElementById("pub_portada_preview_wrap");
+  const img = document.getElementById("pub_portada_preview");
+
+  if (!wrap || !img) return;
+
+  if (src) {
+    img.src = src;
+    wrap.classList.remove("hidden");
+    return;
+  }
+
+  img.removeAttribute("src");
+  wrap.classList.add("hidden");
+}
+
+function bindPublicacionCoverPreview() {
+  const input = document.getElementById("portada");
+  if (!input) return;
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) {
+      setPublicacionCoverPreview("");
+      return;
+    }
+
+    setPublicacionCoverPreview(URL.createObjectURL(file));
+  });
+}
+
 function loadPublicaciones() {
   fetch(`${BASE_URL}/publicaciones/indexJson`)
     .then(r => r.json())
@@ -34,7 +69,7 @@ function loadPublicaciones() {
             <td class="px-3 py-2">${p.codigo}</td>
             <td class="px-3 py-2">
               <div class="w-14 h-20 overflow-hidden rounded shadow">
-                <img src="${p.portada}" class="w-full h-full object-cover">
+                <img src="${getPublicacionCoverSrc(p.portada)}" class="w-full h-full object-cover">
               </div>
             </td>
             <td class="px-3 py-2">${p.titulo}</td>
@@ -61,6 +96,7 @@ function loadPublicaciones() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  bindPublicacionCoverPreview();
   loadPublicaciones();
 });
 
@@ -79,6 +115,8 @@ function openModal() {
   document.getElementById("id").value = "";
   document.getElementById("modalTitle").innerText = "Nueva Publicación";
   document.getElementById("campoEstadoPub").classList.add("hidden");
+  setPublicacionCoverPreview("");
+  document.getElementById("pub_pdf_actual_wrap").classList.add("hidden");
   document.getElementById("modalPub").classList.remove("hidden");
 }
 
@@ -89,27 +127,39 @@ function closeModal() {
 function submitPub() {
   const id = document.getElementById("id").value;
   const url = id ? "/publicaciones/updateJson" : "/publicaciones/createJson";
+  const formData = new FormData();
+  formData.append("id", id);
+  formData.append("titulo", document.getElementById("titulo").value);
+  formData.append("autor", document.getElementById("autor").value);
+  formData.append("revista", document.getElementById("revista").value);
+  formData.append("anio", document.getElementById("anio").value);
+  formData.append("descripcion", document.getElementById("descripcion").value);
+  formData.append("categoria_id", document.getElementById("categoria_id").value);
 
-  const data = {
-    id: id,
-    portada: document.getElementById("portada").value,
-    titulo: document.getElementById("titulo").value,
-    autor: document.getElementById("autor").value,
-    revista: document.getElementById("revista").value,
-    anio: document.getElementById("anio").value,
-    descripcion: document.getElementById("descripcion").value,
-    categoria_id: document.getElementById("categoria_id").value,
-    link_archivo: document.getElementById("link_archivo").value
-  };
+  const portadaFilePub = document.getElementById("portada").files?.[0];
+
+  // Portada obligatoria al crear
+  if (!id && !portadaFilePub) {
+    Swal.fire("Campo obligatorio", "Debes seleccionar una portada para crear la publicación.", "warning");
+    return;
+  }
+
+  if (portadaFilePub) {
+    formData.append("portada_file", portadaFilePub);
+  }
+
+  const pdfFilePub = document.getElementById("link_archivo").files?.[0];
+  if (pdfFilePub) {
+    formData.append("pdf_file", pdfFilePub);
+  }
 
   if (id && document.getElementById("pub_estado")) {
-    data.estado = document.getElementById("pub_estado").value;
+    formData.append("estado", document.getElementById("pub_estado").value);
   }
 
   fetch(`${BASE_URL}${url}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    body: formData
   })
     .then(r => r.json())
     .then(resp => {
@@ -132,14 +182,25 @@ function editPub(id) {
       const p = resp.data;
 
       document.getElementById("id").value = p.id;
-      document.getElementById("portada").value = p.portada;
+      document.getElementById("portada").value = "";
       document.getElementById("titulo").value = p.titulo;
       document.getElementById("autor").value = p.autor;
       document.getElementById("revista").value = p.revista;
       document.getElementById("anio").value = p.anio;
       document.getElementById("descripcion").value = p.descripcion;
       document.getElementById("categoria_id").value = p.categoria_id;
-      document.getElementById("link_archivo").value = p.link_archivo;
+      document.getElementById("link_archivo").value = "";
+      setPublicacionCoverPreview(getPublicacionCoverSrc(p.portada));
+
+      // Mostrar enlace al PDF actual si existe
+      const pdfWrapPub = document.getElementById("pub_pdf_actual_wrap");
+      const pdfLinkPub = document.getElementById("pub_pdf_actual_link");
+      if (p.link_archivo && pdfWrapPub && pdfLinkPub) {
+        pdfLinkPub.href = p.link_archivo;
+        pdfWrapPub.classList.remove("hidden");
+      } else if (pdfWrapPub) {
+        pdfWrapPub.classList.add("hidden");
+      }
 
       if (p.estado) {
         document.getElementById("pub_estado").value = p.estado;

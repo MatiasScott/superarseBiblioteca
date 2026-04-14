@@ -76,14 +76,18 @@ include __DIR__ . '/../layouts/admin_header.php';
 
         <h3 id="modalLibroTitle" class="text-xl font-bold mb-3">Nuevo Libro</h3>
 
-        <form id="formLibro" onsubmit="return false;">
+        <form id="formLibro" onsubmit="return false;" enctype="multipart/form-data">
             <input type="hidden" id="libro_id">
 
             <label>Código Institucional</label>
             <input id="libro_codigo" class="input">
 
-            <label>Portada (URL)</label>
-            <input id="libro_portada" class="input">
+            <label>Portada <span class="text-red-600">*</span></label>
+            <input id="libro_portada" type="file" accept="image/*" class="input">
+            <p class="text-xs text-gray-500 mt-1 mb-2">Obligatoria al crear. Formatos: JPG, PNG, WEBP o GIF. Máx. 5 MB. Se compress a 600×900 px.</p>
+            <div id="libro_portada_preview_wrap" class="hidden mb-3">
+                <img id="libro_portada_preview" src="" alt="Vista previa de portada" class="w-20 h-28 object-cover rounded border border-gray-200 shadow-sm">
+            </div>
 
             <label>Título</label>
             <input id="libro_titulo" class="input">

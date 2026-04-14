@@ -5,6 +5,7 @@ require_once __DIR__ . "/../Helpers/AuditoriaHelper.php";
 require_once __DIR__ . "/../Models/HistorialModel.php";
 require_once __DIR__ . '/../Helpers/AuthHelper.php';
 require_once __DIR__ . '/../Helpers/RequestSecurityHelper.php';
+require_once __DIR__ . '/../Helpers/UploadHelper.php';
 
 class TesisController {
 
@@ -68,12 +69,32 @@ class TesisController {
     AuthHelper::requireAdminJson();
     RequestSecurityHelper::enforceSameOriginJson();
     header("Content-Type: application/json");
-    $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getRequestData();
 
     if (!isset($data['titulo'], $data['autor'], $data['categoria_id'], $data['anio'])) {
         echo json_encode(["success" => false, "message" => "Faltan campos obligatorios"]);
         exit;
     }
+
+        $noImagen = !isset($_FILES['portada_file']) || (int)($_FILES['portada_file']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE;
+        if ($noImagen) {
+            echo json_encode(["success" => false, "message" => "La portada es obligatoria al crear la tesis"]);
+            exit;
+        }
+
+        $upload = UploadHelper::storeImage('portada_file');
+        if (!$upload['success']) {
+            echo json_encode(["success" => false, "message" => $upload['message'] ?? 'No se pudo subir la portada']);
+            exit;
+        }
+        $data['portada'] = $upload['path'] ?? ($data['portada'] ?? '');
+
+        $pdfUpload = UploadHelper::storePdf('pdf_file');
+        if (!$pdfUpload['success']) {
+            echo json_encode(["success" => false, "message" => $pdfUpload['message'] ?? 'No se pudo subir el PDF']);
+            exit;
+        }
+        $data['link_archivo'] = $pdfUpload['path'] ?? ($data['link_archivo'] ?? '');
 
     // Validar categoría tipo 2
     $categoria = $this->categoryModel->find($data['categoria_id']);
@@ -128,7 +149,7 @@ class TesisController {
         RequestSecurityHelper::enforceSameOriginJson();
         header("Content-Type: application/json");
 
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getRequestData();
 
         if (!isset($data['id'])) {
             echo json_encode(["success" => false, "message" => "ID obligatorio"]);
@@ -145,6 +166,20 @@ class TesisController {
         }
 
         $antes = $this->model->getById($data['id']);
+        $upload = UploadHelper::storeImage('portada_file', $antes['portada'] ?? null);
+        if (!$upload['success']) {
+            echo json_encode(["success" => false, "message" => $upload['message'] ?? 'No se pudo subir la portada']);
+            exit;
+        }
+        $data['portada'] = $upload['path'] ?? ($antes['portada'] ?? '');
+
+        $pdfUpload = UploadHelper::storePdf('pdf_file', $antes['link_archivo'] ?? null);
+        if (!$pdfUpload['success']) {
+            echo json_encode(["success" => false, "message" => $pdfUpload['message'] ?? 'No se pudo subir el PDF']);
+            exit;
+        }
+        $data['link_archivo'] = $pdfUpload['path'] ?? ($antes['link_archivo'] ?? '');
+
         $ok = $this->model->updateItem($data);
 
         if ($ok) {
@@ -287,6 +322,16 @@ public function masVistosJson() // O tesisMasVistosJson
     ]);
     exit;
 }
+
+    private function getRequestData(): array
+    {
+        if (!empty($_POST)) {
+            return $_POST;
+        }
+
+        $raw = json_decode(file_get_contents("php://input"), true);
+        return is_array($raw) ? $raw : [];
+    }
    
 
 }

@@ -66,14 +66,18 @@ include __DIR__ . '/../layouts/admin_header.php';
 
         <h3 id="modalTesisTitle" class="text-xl font-bold mb-3">Nueva Tesis</h3>
 
-        <form id="formTesis" onsubmit="return false;">
+        <form id="formTesis" onsubmit="return false;" enctype="multipart/form-data">
             <input type="hidden" id="tesis_id">
 
             <label class="block font-medium">Título <span class="text-red-600">*</span></label>
             <input id="tesis_titulo" class="input">
 
-            <label class="block font-medium">Portada (URL)</label>
-            <input id="tesis_portada" class="input">
+            <label class="block font-medium">Portada <span class="text-red-600">*</span></label>
+            <input id="tesis_portada" type="file" accept="image/*" class="input">
+            <p class="text-xs text-gray-500 mt-1 mb-2">Obligatoria al crear. Formatos: JPG, PNG, WEBP o GIF. Máx. 5 MB. Se compress a 600×900 px.</p>
+            <div id="tesis_portada_preview_wrap" class="hidden mb-3">
+                <img id="tesis_portada_preview" src="" alt="Vista previa de portada" class="w-20 h-28 object-cover rounded border border-gray-200 shadow-sm">
+            </div>
 
             <label class="block font-medium">Autor <span class="text-red-600">*</span></label>
             <input id="tesis_autor" class="input">
@@ -93,8 +97,13 @@ include __DIR__ . '/../layouts/admin_header.php';
             <label class="block font-medium">Palabras Clave / Descripción</label>
             <textarea id="tesis_descripcion" class="input"></textarea>
 
-            <label class="block font-medium">Link PDF</label>
-            <input id="tesis_link" class="input">
+            <label class="block font-medium">Archivo PDF</label>
+            <input id="tesis_link" type="file" accept=".pdf,application/pdf" class="input">
+            <p class="text-xs text-gray-500 mt-1 mb-2">Máx. 50 MB. Si no seleccionas archivo se conserva el PDF actual.</p>
+            <div id="tesis_pdf_actual_wrap" class="hidden mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <a id="tesis_pdf_actual_link" href="#" target="_blank" rel="noopener" class="text-[#1b4785] underline text-sm truncate max-w-xs">Ver PDF actual</a>
+            </div>
 
             <div id="campoEstadoTesis" class="hidden mb-4">
                 <label class="block font-medium">Estado</label>

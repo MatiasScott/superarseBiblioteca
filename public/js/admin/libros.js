@@ -1,6 +1,41 @@
 /* ============================================================================
                                 CARGAR LIBROS
 ============================================================================= */
+function getLibroCoverSrc(src) {
+  return src && String(src).trim() !== "" ? src : DEFAULT_COVER;
+}
+
+function setLibroCoverPreview(src) {
+  const wrap = document.getElementById("libro_portada_preview_wrap");
+  const img = document.getElementById("libro_portada_preview");
+
+  if (!wrap || !img) return;
+
+  if (src) {
+    img.src = src;
+    wrap.classList.remove("hidden");
+    return;
+  }
+
+  img.removeAttribute("src");
+  wrap.classList.add("hidden");
+}
+
+function bindLibroCoverPreview() {
+  const input = document.getElementById("libro_portada");
+  if (!input) return;
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) {
+      setLibroCoverPreview("");
+      return;
+    }
+
+    setLibroCoverPreview(URL.createObjectURL(file));
+  });
+}
+
 function loadLibros() {
   fetch(`${BASE_URL}/libros/indexJson`)
     .then(r => r.json())
@@ -36,7 +71,7 @@ function loadLibros() {
           <tr class="border-b">
             <td class="px-3 py-2">${l.codigo}</td>
             <td class="px-3 py-2">
-              <img src="${l.portada}" class="w-14 h-20 object-cover rounded shadow">
+              <img src="${getLibroCoverSrc(l.portada)}" class="w-14 h-20 object-cover rounded shadow">
             </td>
             <td class="px-3 py-2">${l.titulo}</td>
             <td class="px-3 py-2">${l.autor}</td>
@@ -64,6 +99,7 @@ function loadLibros() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  bindLibroCoverPreview();
   loadLibros();
 });
 
@@ -86,6 +122,7 @@ function openModalLibro() {
   document.getElementById("modalLibroTitle").innerText = "Nuevo Libro";
   document.getElementById("campoEstadoLibro").classList.add("hidden");
   document.getElementById("libro_stock").readOnly = false;
+  setLibroCoverPreview("");
 
   const modal = document.getElementById("modalLibro");
   const card = document.getElementById("modalCard");
@@ -111,33 +148,41 @@ function closeModalLibro() {
 function submitLibro() {
   const id = document.getElementById("libro_id").value;
   const url = id ? "/libros/updateJson" : "/libros/createJson";
+  const formData = new FormData();
+  formData.append("id", id);
+  formData.append("codigo", libro_codigo.value);
+  formData.append("titulo", libro_titulo.value);
+  formData.append("autor", libro_autor.value);
+  formData.append("edicion", libro_edicion.value);
+  formData.append("revista", libro_revista.value);
+  formData.append("codigo_barra", libro_codigo_barra.value);
+  formData.append("categoria_id", libro_categoria.value);
+  formData.append("anio", libro_anio.value);
+  formData.append("numero_ejemplares", libro_numero_ejemplares.value);
+  formData.append("stock", libro_stock.value);
+  formData.append("ubicacion", libro_ubicacion.value);
+  formData.append("descripcion", libro_descripcion.value);
 
-  const data = {
-    id,
-    codigo: libro_codigo.value,
-    portada: libro_portada.value,
-    titulo: libro_titulo.value,
-    autor: libro_autor.value,
-    edicion: libro_edicion.value,
-    revista: libro_revista.value,
-    codigo_barra: libro_codigo_barra.value,
-    categoria_id: libro_categoria.value,
-    anio: libro_anio.value,
-    numero_ejemplares: libro_numero_ejemplares.value,
-    stock: libro_stock.value,
-    ubicacion: libro_ubicacion.value,
-    descripcion: libro_descripcion.value
-  };
+  const portadaFile = document.getElementById("libro_portada").files?.[0];
+
+  // Portada obligatoria al crear
+  if (!id && !portadaFile) {
+    Swal.fire("Campo obligatorio", "Debes seleccionar una portada para crear el libro.", "warning");
+    return;
+  }
+
+  if (portadaFile) {
+    formData.append("portada_file", portadaFile);
+  }
 
   if (id && document.getElementById("libro_estado")) {
-    data.estado = document.getElementById("libro_estado").value;
+    formData.append("estado", document.getElementById("libro_estado").value);
   }
 
   const doSubmit = () => {
     fetch(`${BASE_URL}${url}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: formData
     })
     .then(r => r.json())
     .then(resp => {
@@ -177,7 +222,7 @@ function editLibro(id) {
 
       libro_id.value = libro.id;
       libro_codigo.value = libro.codigo;
-      libro_portada.value = libro.portada;
+      libro_portada.value = "";
       libro_titulo.value = libro.titulo;
       libro_autor.value = libro.autor;
       libro_edicion.value = libro.edicion;
@@ -189,6 +234,7 @@ function editLibro(id) {
       libro_stock.value = libro.stock;
       libro_ubicacion.value = libro.ubicacion;
       libro_descripcion.value = libro.descripcion;
+      setLibroCoverPreview(getLibroCoverSrc(libro.portada));
 
       if (libro.estado) {
         libro_estado.value = libro.estado;

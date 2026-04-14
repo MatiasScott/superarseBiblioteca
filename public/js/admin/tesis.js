@@ -18,6 +18,37 @@ function lanzarConfetti() {
   }
 }
 
+function setTesisCoverPreview(src) {
+  const wrap = document.getElementById("tesis_portada_preview_wrap");
+  const img = document.getElementById("tesis_portada_preview");
+
+  if (!wrap || !img) return;
+
+  if (src) {
+    img.src = src;
+    wrap.classList.remove("hidden");
+    return;
+  }
+
+  img.removeAttribute("src");
+  wrap.classList.add("hidden");
+}
+
+function bindTesisCoverPreview() {
+  const input = document.getElementById("tesis_portada");
+  if (!input) return;
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) {
+      setTesisCoverPreview("");
+      return;
+    }
+
+    setTesisCoverPreview(URL.createObjectURL(file));
+  });
+}
+
 function loadTesis() {
   fetch(`${BASE_URL}/tesis/indexJson`)
     .then(r => r.json())
@@ -80,6 +111,7 @@ function loadTesis() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  bindTesisCoverPreview();
   loadTesis();
 });
 
@@ -111,6 +143,8 @@ function openModalTesis() {
   document.getElementById("tesis_id").value = "";
   document.getElementById("modalTesisTitle").innerText = "Nueva Tesis";
   document.getElementById("campoEstadoTesis").classList.add("hidden");
+  setTesisCoverPreview("");
+  document.getElementById("tesis_pdf_actual_wrap").classList.add("hidden");
   document.getElementById("modalTesis").classList.remove("hidden");
 }
 function closeModalTesis() {
@@ -127,12 +161,16 @@ function onSaveTesis() {
     tutor: tesis_tutor.value,
     universidad: tesis_universidad.value,
     anio: tesis_anio.value,
-    descripcion: tesis_descripcion.value,
-    portada: tesis_portada.value,
-    link_archivo: tesis_link.value
+    descripcion: tesis_descripcion.value
   };
 
   if (data.id && tesis_estado) data.estado = tesis_estado.value;
+
+  // Portada obligatoria al crear
+  const portadaFileTesis = document.getElementById("tesis_portada").files?.[0];
+  if (!data.id && !portadaFileTesis) {
+    return Swal.fire("Campo obligatorio", "Debes seleccionar una portada para crear la tesis.", "warning");
+  }
 
   const faltantes = validarCamposTesis(data);
   if (faltantes.length) {
@@ -154,10 +192,23 @@ function onSaveTesis() {
     if (!r.isConfirmed) return;
 
     const url = data.id ? "/tesis/updateJson" : "/tesis/createJson";
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value ?? "");
+    });
+
+    if (portadaFileTesis) {
+      formData.append("portada_file", portadaFileTesis);
+    }
+
+    const pdfFileTesis = document.getElementById("tesis_link").files?.[0];
+    if (pdfFileTesis) {
+      formData.append("pdf_file", pdfFileTesis);
+    }
+
     fetch(`${BASE_URL}${url}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: formData
     })
     .then(r => r.json())
     .then(resp => {
@@ -189,8 +240,19 @@ function editTesis(id) {
       tesis_universidad.value = t.universidad ?? "";
       tesis_anio.value = t.anio ?? "";
       tesis_descripcion.value = t.descripcion ?? "";
-      tesis_portada.value = t.portada ?? "";
-      tesis_link.value = t.link_archivo ?? "";
+      tesis_portada.value = "";
+      tesis_link.value = "";
+      setTesisCoverPreview(t.portada || DEFAULT_COVER);
+
+      // Mostrar enlace al PDF actual si existe
+      const pdfWrap = document.getElementById("tesis_pdf_actual_wrap");
+      const pdfLink = document.getElementById("tesis_pdf_actual_link");
+      if (t.link_archivo && pdfWrap && pdfLink) {
+        pdfLink.href = t.link_archivo;
+        pdfWrap.classList.remove("hidden");
+      } else if (pdfWrap) {
+        pdfWrap.classList.add("hidden");
+      }
 
       if (t.estado) {
         tesis_estado.value = t.estado;
