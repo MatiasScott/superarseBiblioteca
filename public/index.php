@@ -167,6 +167,10 @@ switch (true) {
         (new DashboardController())->moduleMasVistos();
         break;
 
+    case ($relativeUri === '/admin/reportes'):
+        (new DashboardController())->moduleReportes();
+        break;
+
 /* ==========================================
    LIBROS CRUD
 ========================================== */
@@ -207,6 +211,12 @@ case ($relativeUri === '/reporte/librosMasVistos'):
     break;
 case ($relativeUri === '/reporte/catalogo-libros'):
     (new ReporteController())->exportarCatalogoLibros();
+    break;
+case ($relativeUri === '/reporte/filtros'):
+    (new ReporteController())->filtros();
+    break;
+case ($relativeUri === '/reporte/export'):
+    (new ReporteController())->exportar();
     break;
 
 /* ==========================================

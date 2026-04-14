@@ -73,6 +73,18 @@ include __DIR__ . '/../layouts/student_header.php';
                         👁️ Visitas:
                         <span id="visitasLibro-<?= $libro['id'] ?>"><?= htmlspecialchars($libro['visitas']) ?></span>
                     </div>
+                    <div class="col-span-2 grid grid-cols-2 gap-2 mt-1">
+                        <button type="button"
+                                class="bg-[#1b4785] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaLibro('apa7', <?= $libro['id'] ?>, event)">
+                            Cita APA 7
+                        </button>
+                        <button type="button"
+                                class="bg-[#164c7e] text-white rounded-lg py-1 text-center hover:bg-[#479990] transition"
+                                onclick="generarCitaLibro('ieee', <?= $libro['id'] ?>, event)">
+                            Cita IEEE
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-const BASE_URL = window.APP?.BASE_URL || '';
+const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
 const publicaciones = window.APP?.publicaciones || [];
 
 /* ==========================
@@ -8,7 +8,7 @@ window.abrirModal = function (id) {
     const p = publicaciones.find(item => item.id == id);
     if (!p) return;
 
-    fetch(`${BASE_URL}/publicaciones/sumarVisita/${id}`)
+    fetch(`${APP_BASE_URL}/publicaciones/sumarVisita/${id}`)
         .then(res => res.json())
         .then(data => {
             if (data.ok) {

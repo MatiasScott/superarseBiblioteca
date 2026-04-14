@@ -1,4 +1,4 @@
-const { BASE_URL } = window.APP;
+const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
 const tesis = window.APP.tesis || [];
 
 /* ======================
@@ -10,7 +10,7 @@ window.abrirModal = function (id) {
 
     // Incrementar visitas
     
-          fetch(`${BASE_URL}/tesis/sumarVisita/${id}`, { method: 'POST' })
+          fetch(`${APP_BASE_URL}/tesis/sumarVisita/${id}`, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
             if (data.ok) {
@@ -87,3 +87,66 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+function inicialesAutorTesis(nombreCompleto) {
+    return String(nombreCompleto || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((parte) => `${parte.charAt(0).toUpperCase()}.`)
+        .join(' ');
+}
+
+function copiarTextoTesis(texto) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(texto);
+    }
+
+    const area = document.createElement('textarea');
+    area.value = texto;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    return Promise.resolve();
+}
+
+window.generarCitaTesis = function (formato, id, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    const t = tesis.find((item) => item.id == id);
+    if (!t) return;
+
+    const autor = t.autor || 'Autor desconocido';
+    const anio = t.anio || 's.f.';
+    const titulo = t.titulo || 'Sin título';
+    const universidad = t.universidad || 'Universidad no registrada';
+
+    let cita = '';
+    if (String(formato).toLowerCase() === 'ieee') {
+        cita = `${inicialesAutorTesis(autor)} ${autor.split(' ').slice(-1)[0]}, "${titulo}," Tesis de grado, ${universidad}, ${anio}.`;
+    } else {
+        cita = `${autor}. (${anio}). ${titulo} [Tesis de grado, ${universidad}].`;
+    }
+
+    copiarTextoTesis(cita)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Cita generada',
+                text: 'La cita fue copiada al portapapeles.',
+                confirmButtonColor: '#1b4785'
+            });
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'info',
+                title: 'Cita generada',
+                text: cita,
+                confirmButtonColor: '#1b4785'
+            });
+        });
+};

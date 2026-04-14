@@ -1,4 +1,6 @@
-const { BASE_URL, libros, usuarioLogueado } = window.APP;
+const APP_BASE_URL = window.APP?.BASE_URL || window.BASE_URL || '';
+const libros = window.APP?.libros || [];
+const usuarioLogueado = !!window.APP?.usuarioLogueado;
 
 /* ======================
    MODAL BONITO ALERTA
@@ -34,7 +36,7 @@ window.abrirModal = function (id) {
     const libro = libros.find(l => l.id == id);
     if (!libro) return;
 
-    fetch(`${BASE_URL}/libros/sumarVisita/${id}`, { method: 'POST' })
+    fetch(`${APP_BASE_URL}/libros/sumarVisita/${id}`, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
             if (data.ok) {
@@ -86,12 +88,12 @@ window.solicitarPrestamo = function (id) {
         mostrarAlerta(
             "Inicia sesión",
             "Debes iniciar sesión para solicitar un préstamo. Si no tienes credenciales comunícate con nathaly.ortiz@superarse.edu.ec",
-            () => window.location.href = `${BASE_URL}/login`
+            () => window.location.href = `${APP_BASE_URL}/login`
         );
         return;
     }
 
-    fetch(`${BASE_URL}/solicitudes/crear`, {
+    fetch(`${APP_BASE_URL}/solicitudes/crear`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `item_id=${id}`
@@ -137,3 +139,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const total = document.querySelectorAll('#gridLibros > div').length;
     contador.innerText = `Mostrando ${total} resultados`;
 });
+
+function inicialesAutor(nombreCompleto) {
+    return String(nombreCompleto || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((parte) => `${parte.charAt(0).toUpperCase()}.`)
+        .join(' ');
+}
+
+function copiarTexto(texto) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(texto);
+    }
+
+    const area = document.createElement('textarea');
+    area.value = texto;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    return Promise.resolve();
+}
+
+window.generarCitaLibro = function (formato, id, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    const libro = libros.find((l) => l.id == id);
+    if (!libro) return;
+
+    const autor = libro.autor || 'Autor desconocido';
+    const anio = libro.anio || 's.f.';
+    const titulo = libro.titulo || 'Sin título';
+    const edicion = libro.edicion || 's. ed.';
+    const editorial = libro.revista || 'Editorial no registrada';
+
+    let cita = '';
+    if (String(formato).toLowerCase() === 'ieee') {
+        cita = `${inicialesAutor(autor)} ${autor.split(' ').slice(-1)[0]}, "${titulo}", ${edicion} ed., ${editorial}, ${anio}.`;
+    } else {
+        cita = `${autor}. (${anio}). ${titulo} (${edicion}). ${editorial}.`;
+    }
+
+    copiarTexto(cita)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Cita generada',
+                text: 'La cita fue copiada al portapapeles.',
+                confirmButtonColor: '#1b4785'
+            });
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'info',
+                title: 'Cita generada',
+                text: cita,
+                confirmButtonColor: '#1b4785'
+            });
+        });
+};

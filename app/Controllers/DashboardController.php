@@ -71,6 +71,7 @@ class DashboardController
     public function moduleCategorias():    void { $this->moduleView('categorias'); }
     public function moduleEstadisticas():  void { $this->moduleView('estadisticas'); }
     public function moduleMasVistos():     void { $this->moduleView('mas_vistos'); }
+    public function moduleReportes():      void { $this->moduleView('reportes'); }
 
     /* -------------------------------------------------------
        Módulos student individuales

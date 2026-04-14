@@ -18,6 +18,7 @@ $sidebarModules = [
     'categorias'   => ['icon' => '🏷️', 'label' => 'Categorías',         'url' => BASE_URL . '/admin/categorias'],
     'estadisticas' => ['icon' => '📊',  'label' => 'Estadísticas',       'url' => BASE_URL . '/admin/estadisticas'],
     'mas-vistos'   => ['icon' => '👁️', 'label' => 'Más Vistos',         'url' => BASE_URL . '/admin/mas-vistos'],
+    'reportes'     => ['icon' => '🧾',  'label' => 'Reportes',           'url' => BASE_URL . '/admin/reportes'],
 ];
 ?>
 <!DOCTYPE html>
